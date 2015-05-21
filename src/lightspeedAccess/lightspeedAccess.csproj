@@ -40,12 +40,15 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="ILightspeedShopService.cs" />
     <Compile Include="LightspeedFactory.cs" />
     <Compile Include="ILightspeedOrdersService.cs" />
     <Compile Include="LightspeedOrdersService.cs" />
+    <Compile Include="LightspeedShopService.cs" />
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\LightspeedLogger.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
+    <Compile Include="Models\Request\GetShopRequest.cs" />
     <Compile Include="Models\ShippingInfo\Contact.cs" />
     <Compile Include="Models\ShippingInfo\LightspeedAddress.cs" />
     <Compile Include="Models\Common\LightspeedMoneyType.cs" />
@@ -58,6 +61,7 @@
     <Compile Include="Models\Request\GetSalesRequest.cs" />
     <Compile Include="Models\Request\GetShipInfoRequest.cs" />
     <Compile Include="Models\Request\LightspeedRequest.cs" />
+    <Compile Include="Models\Shop\Shop.cs" />
     <Compile Include="Services\WebRequestService.cs" />
   </ItemGroup>
   <ItemGroup>

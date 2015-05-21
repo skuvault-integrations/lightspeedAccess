@@ -31,6 +31,7 @@ namespace lightspeedAccess.Models.Request
 		public static readonly LightspeedRestAPISegment Sale = new LightspeedRestAPISegment( "Sale" );
 		public static readonly LightspeedRestAPISegment SaleLine = new LightspeedRestAPISegment( "SaleLine" );
 		public static readonly LightspeedRestAPISegment Account = new LightspeedRestAPISegment( "Account" );
+		public static readonly LightspeedRestAPISegment Shop = new LightspeedRestAPISegment( "Shop" );
 		public static readonly LightspeedRestAPISegment ShipTo = new LightspeedRestAPISegment( "ShipTo" );
 
 		private LightspeedRestAPISegment( string segment )
