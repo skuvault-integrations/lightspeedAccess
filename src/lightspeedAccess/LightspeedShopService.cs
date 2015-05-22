@@ -30,5 +30,11 @@ namespace lightspeedAccess
 		{
 			return null;
 		}
+
+		public void UpdateOnHandQuantity()
+		{
+			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest(5, 172, 1);
+			_webRequestServices.GetResponse<ShopsList>( updateOnHandQuantityRequest);
+		}
 	}
 }

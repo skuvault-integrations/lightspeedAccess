@@ -11,5 +11,6 @@ namespace lightspeedAccess
 	{
 		IEnumerable< Shop > GetShops();
 		Task< IEnumerable< Shop > > GetShopsAsync();
+		void UpdateOnHandQuantity();
 	}
 }

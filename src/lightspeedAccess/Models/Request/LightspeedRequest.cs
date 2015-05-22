@@ -13,6 +13,11 @@ namespace lightspeedAccess.Models.Request
 		protected abstract IEnumerable< LightspeedRestAPISegment > GetPath();
 		protected abstract Dictionary< LightspeedRequestPathParam, string > GetPathParams();
 
+		public virtual byte[] GetBody()
+		{
+			return null;
+		}
+
 		public string GetUri()
 		{
 			var segmentedPath = string.Empty;
@@ -37,6 +42,11 @@ namespace lightspeedAccess.Models.Request
 		private LightspeedRestAPISegment( string segment )
 		{
 			this.Segment = segment;
+		}
+
+		public LightspeedRestAPISegment( int id )
+		{
+			this.Segment = id.ToString();
 		}
 
 		public string Segment{ get; private set; }

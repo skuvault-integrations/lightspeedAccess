@@ -29,7 +29,7 @@ namespace lightspeedAccess.Models.Request
 			{ LightspeedRequestPathParam.LoadRelations, "[\"SaleLines\"]"} };
 		}
 
-		public GetSalesRequest(DateTime fromDateUtc, DateTime toDateUtc, int offset = 0, int limit = 10)
+		public GetSalesRequest(DateTime fromDateUtc, DateTime toDateUtc, int offset = 0, int limit = 100)
 		{
 			Limit = limit;
 			Offset = offset;

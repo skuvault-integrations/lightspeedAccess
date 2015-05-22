@@ -49,6 +49,7 @@
     <Compile Include="Misc\LightspeedLogger.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Models\Request\GetShopRequest.cs" />
+    <Compile Include="Models\Request\UpdateOnHandQuantityRequest.cs" />
     <Compile Include="Models\ShippingInfo\Contact.cs" />
     <Compile Include="Models\ShippingInfo\LightspeedAddress.cs" />
     <Compile Include="Models\Common\LightspeedMoneyType.cs" />
