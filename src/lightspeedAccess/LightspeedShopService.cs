@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using lightspeedAccess.Models.Configuration;
+using lightspeedAccess.Models.Product;
 using lightspeedAccess.Models.Request;
 using lightspeedAccess.Models.Shop;
 using lightspeedAccess.Services;
@@ -22,19 +24,28 @@ namespace lightspeedAccess
 
 		public IEnumerable< Shop > GetShops()
 		{
+			// TODO use shop names
 			var getShopsRequest = new GetShopRequest();
 			return _webRequestServices.GetResponse<ShopsList>( getShopsRequest ).Shop;
 		}
 
-		public Task< IEnumerable< Shop > > GetShopsAsync()
+		public async Task< IEnumerable< Shop > > GetShopsAsync(CancellationToken ctx)
 		{
-			return null;
+			var getShopsRequest = new GetShopRequest();
+			return (await _webRequestServices.GetResponseAsync<ShopsList>( getShopsRequest, ctx )).Shop;
 		}
 
-		public void UpdateOnHandQuantity()
+		public void UpdateOnHandQuantity(int itemId, int shopId, int quantity)
 		{
-			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest(5, 172, 1);
-			_webRequestServices.GetResponse<ShopsList>( updateOnHandQuantityRequest);
+			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest(itemId, shopId, quantity);
+			_webRequestServices.GetResponse<LightspeedProduct>( updateOnHandQuantityRequest);
 		}
+
+		public async Task UpdateOnHandQuantityAsync( int itemId, int shopId, int quantity, CancellationToken ctx )
+		{
+			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, quantity );
+			await _webRequestServices.GetResponseAsync<LightspeedProduct>( updateOnHandQuantityRequest, ctx );
+		}
+
 	}
 }

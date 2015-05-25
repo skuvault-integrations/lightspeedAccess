@@ -25,6 +25,8 @@ namespace lightspeedAccess.Models.Order
 
 		public HashSet< LightspeedProduct > Products{ get; set; }
 		public ShipTo ShipTo{ get; set; }
+
+		// TODO retrieve shopID
 	}
 
 	[ XmlRootAttribute( "Sales", Namespace = "", IsNullable = false ) ]

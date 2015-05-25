@@ -63,6 +63,7 @@
     <Compile Include="Models\Request\GetShipInfoRequest.cs" />
     <Compile Include="Models\Request\LightspeedRequest.cs" />
     <Compile Include="Models\Shop\Shop.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\WebRequestService.cs" />
   </ItemGroup>
   <ItemGroup>

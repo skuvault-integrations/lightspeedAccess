@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -13,7 +14,7 @@ namespace lightspeedAccess.Models.Request
 		protected abstract IEnumerable< LightspeedRestAPISegment > GetPath();
 		protected abstract Dictionary< LightspeedRequestPathParam, string > GetPathParams();
 
-		public virtual byte[] GetBody()
+		public virtual Stream GetBody()
 		{
 			return null;
 		}

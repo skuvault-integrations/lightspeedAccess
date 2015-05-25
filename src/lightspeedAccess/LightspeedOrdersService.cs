@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using lightspeedAccess.Misc;
 using lightspeedAccess.Models.Configuration;
@@ -83,7 +84,39 @@ namespace lightspeedAccess
 			return result;
 		}
 
-		public async Task< IEnumerable< Order > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo )
+		private async Task<IEnumerable<LightspeedProduct>> GetItemsAsync( IEnumerable<Order> orders, CancellationToken ctx )
+		{
+			var itemIds = orders.SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ) ).ToHashSet();
+			var getItemsRequest = new GetItemsRequest( itemIds );
+
+			var result = new List<LightspeedProduct>();
+
+			await ActionPolicies.SubmitAsync.Do(
+				async () =>
+				{
+					result = (await _webRequestServices.GetResponseAsync<LightspeedProductList>( getItemsRequest, ctx )).Item.ToList();
+				} );
+
+			return result;
+		}
+
+		private async Task<Dictionary<int, ShipTo>> GetShipInfoAsync( IEnumerable<Order> orders, CancellationToken ctx )
+		{
+			var shipIds = orders.Select( o => o.ShipToId ).ToHashSet();
+			var getShipInfoRequest = new GetShipInfoRequest( shipIds );
+
+			var result = new Dictionary<int, ShipTo>();
+			await ActionPolicies.SubmitAsync.Do( async () =>
+			{
+				var response = (await _webRequestServices.GetResponseAsync<ShipInfoList>( getShipInfoRequest, ctx )).ShipTo;
+				if ( response != null )
+					result = response.Select( st => new Tuple<int, ShipTo>( st.SaleId, st ) ).ToDictionary( x => x.Item1, x => x.Item2 );
+			} );
+
+			return result;
+		}
+
+		public async Task< IEnumerable< Order > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo, CancellationToken ctx)
 		{
 			var getSalesRequest = new GetSalesRequest( dateFrom, dateTo );
 
@@ -92,11 +125,11 @@ namespace lightspeedAccess
 			await ActionPolicies.SubmitAsync.Do( async () =>
 			{
 				rawOrders =
-					(await _webRequestServices.GetResponseAsync<OrderList>( getSalesRequest )).Sale.Where( s => s.SaleLines != null ).ToList();
+					(await _webRequestServices.GetResponseAsync<OrderList>( getSalesRequest, ctx )).Sale.Where( s => s.SaleLines != null ).ToList();
 			} );
 
-			var items = GetItems( rawOrders );
-			var shipInfos = GetShipInfo( rawOrders );
+			var items = await GetItemsAsync( rawOrders, ctx );
+			var shipInfos = await GetShipInfoAsync( rawOrders, ctx );
 
 			rawOrders.ForEach( o =>
 			{

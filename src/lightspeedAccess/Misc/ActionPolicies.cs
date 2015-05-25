@@ -15,7 +15,7 @@ namespace lightspeedAccess.Misc
 			get { return _lightspeedRetryPolicy; }
 		}
 
-		private static readonly int RetryIntervalSeconds = 60;
+		private static readonly int RetryIntervalSeconds = 45; 
 
 		private static readonly ActionPolicy _lightspeedRetryPolicy = ActionPolicy.Handle< Exception >().Retry( 10, ( ex, i ) =>
 		{
@@ -25,10 +25,10 @@ namespace lightspeedAccess.Misc
 
 		public static ActionPolicyAsync SubmitAsync
 		{
-			get { return _bigCommerceSumbitAsyncPolicy; }
+			get { return _lightspeedSumbitAsyncPolicy; }
 		}
 
-		private static readonly ActionPolicyAsync _bigCommerceSumbitAsyncPolicy =
+		private static readonly ActionPolicyAsync _lightspeedSumbitAsyncPolicy =
 			ActionPolicyAsync.Handle< Exception >().RetryAsync( 10, async ( ex, i ) =>
 			{
 				LightspeedLogger.Log.Trace( ex, "Retrying Lightspeed API submit call for the {0} time", i );

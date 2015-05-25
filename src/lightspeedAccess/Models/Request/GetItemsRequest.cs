@@ -27,4 +27,9 @@ namespace lightspeedAccess.Models.Request
 			ItemIds = ids.ToList();
 		}
 	}
+
+	public class SucessApiResponse
+	{
+
+	}
 }
