@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	public class GetItemsRequest : LightspeedRequest
 	{
-		private readonly List<int> ItemIds = new List<int>();
+		private readonly List<int> ItemIds;
+		private readonly List<string> ItemSkus;
  
 		protected override IEnumerable<LightspeedRestAPISegment> GetPath()
 		{
@@ -17,15 +18,35 @@ namespace lightspeedAccess.Models.Request
 
 		protected override Dictionary<LightspeedRequestPathParam, string> GetPathParams()
 		{
-			if (ItemIds.Count == 0) return new Dictionary<LightspeedRequestPathParam, string>();
-			return new Dictionary<LightspeedRequestPathParam, string>
-			{ { LightspeedRequestPathParam.ItemId, LightspeedIdRangeBuilder.GetIdRangeParam(ItemIds) } };
+			if ( ItemIds != null )
+			{
+				if ( ItemIds.Count == 0 ) 
+				return new Dictionary<LightspeedRequestPathParam, string> { { LightspeedRequestPathParam.ItemId, LightspeedIdRangeBuilder.GetIdRangeParam( ItemIds ) } };
+			}
+
+			if ( ItemSkus != null )
+			{
+				if ( ItemSkus.Count == 0 )
+					return new Dictionary<LightspeedRequestPathParam, string> { { LightspeedRequestPathParam.SystemSku, LightspeedIdRangeBuilder.GetIdRangeParam( ItemSkus ) } };
+			}
+			return new Dictionary<LightspeedRequestPathParam, string>();
 		}
 
 		public GetItemsRequest(IEnumerable<int> ids )
 		{
 			ItemIds = ids.ToList();
 		}
+
+		public GetItemsRequest( IEnumerable<string> skus )
+		{
+			ItemSkus = skus.ToList();
+		}
+
+		public override string ToString()
+		{
+			return "GetItemsRequest";
+		}
+
 	}
 
 	public class SucessApiResponse

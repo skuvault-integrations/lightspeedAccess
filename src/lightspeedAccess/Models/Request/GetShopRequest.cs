@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	class GetShopRequest : LightspeedRequest, IRequestPagination
 	{
@@ -41,6 +41,11 @@ namespace lightspeedAccess.Models.Request
 		public int GetLimit()
 		{
 			return Limit;
+		}
+
+		public override string ToString()
+		{
+			return "GetShopRequest";
 		}
 	}
 }

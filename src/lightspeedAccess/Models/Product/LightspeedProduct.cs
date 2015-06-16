@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using lightspeedAccess.Models.Request;
+using LightspeedAccess.Models.Request;
 
-namespace lightspeedAccess.Models.Product
+namespace LightspeedAccess.Models.Product
 {
 	[XmlType( "Item" )]
 	public class LightspeedProduct
@@ -28,7 +28,7 @@ namespace lightspeedAccess.Models.Product
 		public ItemShop[] itemShops { get; set; }
 	}
 
-	[XmlRootAttribute( "Items", Namespace = "", IsNullable = false )]
+	[XmlRoot( "Items", Namespace = "", IsNullable = false )]
 	public class LightspeedShopQuantityList
 	{
 		[XmlElement( typeof( LightspeedShopQuantity ) )]
@@ -48,7 +48,7 @@ namespace lightspeedAccess.Models.Product
 	}
 
 
-	[XmlRootAttribute( "Items", Namespace = "", IsNullable = false )]
+	[XmlRoot( "Items", Namespace = "", IsNullable = false )]
 	public class LightspeedProductList : IPaginatedResponse
 	{
 		[XmlElement( typeof( LightspeedProduct ) )]

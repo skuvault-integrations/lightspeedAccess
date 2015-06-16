@@ -1,7 +1,7 @@
 using System.Xml.Serialization;
-using lightspeedAccess.Models.ShippingInfo;
+using LightspeedAccess.Models.ShippingInfo;
 
-namespace lightspeedAccess.Models.Order
+namespace LightspeedAccess.Models.Order
 {
 	[XmlRoot( "ShipTos", Namespace = "", IsNullable = false )]
 	public class ShipInfoList

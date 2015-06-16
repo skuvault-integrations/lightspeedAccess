@@ -55,9 +55,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\lightspeedAccess\lightspeedAccess.csproj">
+    <ProjectReference Include="..\lightspeedAccess\LightspeedAccess.csproj">
       <Project>{433b0676-d4ea-4e46-8a91-a11f6459453a}</Project>
-      <Name>lightspeedAccess</Name>
+      <Name>LightspeedAccess</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

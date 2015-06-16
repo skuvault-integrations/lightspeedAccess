@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using lightspeedAccess;
-using lightspeedAccess.Models.Configuration;
-using lightspeedAccess.Models.Order;
-using lightspeedAccess.Models.Product;
-using lightspeedAccess.Models.Request;
-using lightspeedAccess.Services;
+using LightspeedAccess;
+using LightspeedAccess.Models.Configuration;
+using LightspeedAccess.Models.Order;
+using LightspeedAccess.Models.Product;
+using LightspeedAccess.Models.Request;
+using LightspeedAccess.Services;
 using NUnit.Framework;
 
 namespace lightspeedAccessTests.Orders
@@ -24,7 +24,7 @@ namespace lightspeedAccessTests.Orders
 		[ SetUp ]
 		public void Init()
 		{
-			_factory = new LightspeedFactory();
+			_factory = new LightspeedFactory("n/a", "n/a", "n/a");
 			_config = new LightspeedConfig();
 		}
 
@@ -32,9 +32,9 @@ namespace lightspeedAccessTests.Orders
 		public void OrderServiceTest()
 		{
 			var service = _factory.CreateOrdersService( _config );
-			var startDate = DateTime.ParseExact( "2015-05-16T16:30:27", "yyyy-MM-ddTHH:mm:ss",
+			var startDate = DateTime.ParseExact( "2015-06-16T16:30:27", "yyyy-MM-ddTHH:mm:ss",
 				CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal );
-			var endDate = startDate.Add( new TimeSpan( 10, 0, 0, 0 ) );
+			var endDate = startDate.Add( new TimeSpan( 10000, 0, 0, 0 ) );
 
 			var orders = service.GetOrders( startDate, endDate );
 
@@ -45,7 +45,7 @@ namespace lightspeedAccessTests.Orders
 		public void OrderServiceTestAsync()
 		{
 			var service = _factory.CreateOrdersService( _config );
-			var startDate = DateTime.ParseExact( "2015-05-16T16:30:27", "yyyy-MM-ddTHH:mm:ss",
+			var startDate = DateTime.ParseExact( "2015-06-16T16:30:27", "yyyy-MM-ddTHH:mm:ss",
 				CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal );
 			var endDate = startDate.Add( new TimeSpan( 10, 0, 0, 0 ) );
 

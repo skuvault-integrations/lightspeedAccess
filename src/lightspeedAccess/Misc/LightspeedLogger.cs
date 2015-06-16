@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Netco.Logging;
 
-namespace lightspeedAccess.Misc
+namespace LightspeedAccess.Misc
 {
 	class LightspeedLogger
 	{

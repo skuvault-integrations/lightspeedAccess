@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace lightspeedAccess.Models.ShippingInfo
+namespace LightspeedAccess.Models.ShippingInfo
 {
 	[XmlType( "ContactAddress" )]
 	public class LightspeedAddress
@@ -9,5 +9,8 @@ namespace lightspeedAccess.Models.ShippingInfo
 		public string address2 { get; set; }
 		public string zip { get; set; }
 		public string country { get; set; }
+		public string state { get; set; }
+		public string city { get; set; }
 	}
+
 }

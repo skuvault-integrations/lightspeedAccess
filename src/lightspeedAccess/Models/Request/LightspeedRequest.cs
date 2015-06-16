@@ -7,7 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	public abstract class LightspeedRequest
 	{
@@ -19,14 +19,19 @@ namespace lightspeedAccess.Models.Request
 			return null;
 		}
 
-		public string GetUri()
+		public string GetUri(string authToken)
 		{
 			var segmentedPath = string.Empty;
+
 			GetPath().ToList().ForEach( s => segmentedPath = string.Concat( segmentedPath, s, "/" ) );
 			segmentedPath = segmentedPath.TrimEnd( '/' );
-			if( GetPathParams().Count != 0 )
+
+			var pathParams = GetPathParams();
+			if ( authToken != null ) pathParams.Add( LightspeedRequestPathParam.AuthToken, authToken );
+
+			if( pathParams.Count != 0 )
 				segmentedPath = string.Concat( segmentedPath, "?" );
-			GetPathParams().ToList().ForEach( p => segmentedPath = string.Concat( segmentedPath, "&", p.Key, "=", p.Value ) );
+			pathParams.ToList().ForEach( p => segmentedPath = string.Concat( segmentedPath, "&", p.Key, "=", p.Value ) );
 			return segmentedPath;
 		}
 	}
@@ -67,10 +72,12 @@ namespace lightspeedAccess.Models.Request
 
 		public static readonly LightspeedRequestPathParam Limit = new LightspeedRequestPathParam( "limit" );
 		public static readonly LightspeedRequestPathParam Offset = new LightspeedRequestPathParam( "offset" );
+		public static readonly LightspeedRequestPathParam AuthToken = new LightspeedRequestPathParam( "oauth_token" );
 		public static readonly LightspeedRequestPathParam LoadRelations = new LightspeedRequestPathParam( "load_relations" );
 		public static readonly LightspeedRequestPathParam TimeStamp = new LightspeedRequestPathParam( "timeStamp" );
 		public static readonly LightspeedRequestPathParam ItemId = new LightspeedRequestPathParam( "itemID" );
 		public static readonly LightspeedRequestPathParam ShipToId = new LightspeedRequestPathParam( "shipToID" );
+		public static readonly LightspeedRequestPathParam SystemSku = new LightspeedRequestPathParam( "systemSku" );
 
 		public string Param{ get; private set; }
 
@@ -87,6 +94,13 @@ namespace lightspeedAccess.Models.Request
 		public static string GetIdRangeParam( IEnumerable< int > ids )
 		{
 			var list = string.Join( ",", ids.Select( n => n.ToString() ).ToArray() );
+
+			return string.Concat( LightspeedRangeOperator, ",[", list, "]" );
+		}
+
+		public static string GetIdRangeParam( IEnumerable<string> skus )
+		{
+			var list = string.Join( ",", skus );
 
 			return string.Concat( LightspeedRangeOperator, ",[", list, "]" );
 		}

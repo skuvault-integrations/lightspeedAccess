@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace lightspeedAccess.Models.Common
+namespace LightspeedAccess.Models.Common
 {
 	public class LightspeedMoneyType
 	{

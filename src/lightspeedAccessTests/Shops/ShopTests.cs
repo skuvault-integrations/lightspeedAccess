@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using lightspeedAccess;
-using lightspeedAccess.Models.Configuration;
+using LightspeedAccess;
+using LightspeedAccess.Models.Configuration;
 using NUnit.Framework;
 
 namespace lightspeedAccessTests.Shops
@@ -18,7 +18,7 @@ namespace lightspeedAccessTests.Shops
 		[SetUp]
 		public void Init()
 		{
-			_factory = new LightspeedFactory();
+			_factory = new LightspeedFactory("n/a", "n/a", "n/a");
 			_config = new LightspeedConfig();
 		}
 
@@ -60,5 +60,16 @@ namespace lightspeedAccessTests.Shops
 			task.Wait();
 		}
 
+		//210000000007
+
+		[Test]
+		public void GetItemsAsyncTest()
+		{
+			var service = _factory.CreateShopsService( _config );
+			var cSource = new CancellationTokenSource();
+			var task = service.GetItems( new List<String> { "210000000007" }, cSource.Token );
+			task.Wait();
+			Assert.Greater( task.Result.Count, 0 );
+		}
 	}
 }

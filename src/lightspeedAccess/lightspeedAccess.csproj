@@ -40,14 +40,20 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="AccountService.cs" />
+    <Compile Include="IAccountService.cs" />
     <Compile Include="ILightspeedShopService.cs" />
+    <Compile Include="ILigthspeedAuthService.cs" />
+    <Compile Include="LightspeedAuthService.cs" />
     <Compile Include="LightspeedFactory.cs" />
     <Compile Include="ILightspeedOrdersService.cs" />
     <Compile Include="LightspeedOrdersService.cs" />
     <Compile Include="LightspeedShopService.cs" />
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\LightspeedLogger.cs" />
+    <Compile Include="Models\Account\LightspeedAccountInfo.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
+    <Compile Include="Models\Request\GetAccountRequest.cs" />
     <Compile Include="Models\Request\GetShopRequest.cs" />
     <Compile Include="Models\Request\UpdateOnHandQuantityRequest.cs" />
     <Compile Include="Models\ShippingInfo\Contact.cs" />
@@ -55,6 +61,8 @@
     <Compile Include="Models\Common\LightspeedMoneyType.cs" />
     <Compile Include="Models\Order\LightspeedOrder.cs" />
     <Compile Include="Models\Order\SaleLine.cs" />
+    <Compile Include="Models\ShippingInfo\LightspeedEmail.cs" />
+    <Compile Include="Models\ShippingInfo\LightspeedPhone.cs" />
     <Compile Include="Models\ShippingInfo\ShipInfoList.cs" />
     <Compile Include="Models\ShippingInfo\ShipTo.cs" />
     <Compile Include="Models\Product\LightspeedProduct.cs" />

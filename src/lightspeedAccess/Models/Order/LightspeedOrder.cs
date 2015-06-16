@@ -5,14 +5,15 @@ using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using lightspeedAccess.Models.Product;
-using lightspeedAccess.Models.Request;
-using lightspeedAccess.Models.ShippingInfo;
+using LightspeedAccess.Models.Common;
+using LightspeedAccess.Models.Product;
+using LightspeedAccess.Models.Request;
+using LightspeedAccess.Models.ShippingInfo;
 
-namespace lightspeedAccess.Models.Order
+namespace LightspeedAccess.Models.Order
 {
 	[ XmlType( "Sale" ) ]
-	public class Order
+	public class LightspeedOrder
 	{
 		[ XmlElement( "saleID" ) ]
 		public int SaleId{ get; set; }
@@ -23,17 +24,27 @@ namespace lightspeedAccess.Models.Order
 		[ XmlArray( "SaleLines" ) ]
 		public SaleLine[] SaleLines{ get; set; }
 
+		[XmlElement( "timeStamp" )]
+		public DateTime DateTime { get; set; }
+
+		[XmlElement( "total" )]
+		public LightspeedMoneyType Total { get; set; }
+
 		public HashSet< LightspeedProduct > Products{ get; set; }
+
 		public ShipTo ShipTo{ get; set; }
 
-		// TODO retrieve shopID
+		[XmlElement( "shopID" )]
+		public int ShopId { get; set; }
+
+		public string ShopName { get; set; }
 	}
 
-	[ XmlRootAttribute( "Sales", Namespace = "", IsNullable = false ) ]
+	[ XmlRoot( "Sales", Namespace = "", IsNullable = false ) ]
 	public class OrderList: IPaginatedResponse
 	{
-		[ XmlElement( typeof( Order ) ) ]
-		public Order[] Sale{ get; set; }
+		[ XmlElement( typeof( LightspeedOrder ) ) ]
+		public LightspeedOrder[] Sale{ get; set; }
 
 		[ XmlAttribute ]
 		public int count{ get; set; }

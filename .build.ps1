@@ -2,7 +2,7 @@
 (
 )
 
-$project_short_name = "lightspeed"
+$project_short_name = "Lightspeed"
 $project_name = "$($project_short_name)Access"
 
 # Folder structure:

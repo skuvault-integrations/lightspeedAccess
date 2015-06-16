@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using lightspeedAccess.Models.Product;
+using LightspeedAccess.Models.Product;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	internal class UpdateOnHandQuantityRequest: LightspeedRequest
 	{
@@ -50,6 +50,11 @@ namespace lightspeedAccess.Models.Request
 			ItemId = itemId;
 			StoreId = shopId;
 			QuantityOnHand = qoh;
+		}
+
+		public override string ToString()
+		{
+			return "UpdateOnHandQuantityRequest";
 		}
 	}
 }

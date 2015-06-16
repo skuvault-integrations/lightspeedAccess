@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	public class GetShipInfoRequest: LightspeedRequest
 	{
@@ -27,6 +27,11 @@ namespace lightspeedAccess.Models.Request
 		public GetShipInfoRequest( IEnumerable< int > shipToIds )
 		{
 			_shipToIds = shipToIds.ToList();
+		}
+
+		public override string ToString()
+		{
+			return "GetShipInfoRequest";
 		}
 	}
 }
