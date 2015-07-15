@@ -10,19 +10,19 @@ using NUnit.Framework;
 
 namespace lightspeedAccessTests.Shops
 {
-	class ShopTests
+	internal class ShopTests
 	{
 		private LightspeedFactory _factory;
 		private LightspeedConfig _config;
 
-		[SetUp]
+		[ SetUp ]
 		public void Init()
 		{
-			_factory = new LightspeedFactory("n/a", "n/a", "n/a");
-			_config = new LightspeedConfig();
+			_factory = new LightspeedFactory( "n/a", "n/a", "n/a" );
+			_config = new LightspeedConfig( 767 );
 		}
 
-		[Test]
+		[ Test ]
 		public void GetShopsTest()
 		{
 			var service = _factory.CreateShopsService( _config );
@@ -31,7 +31,7 @@ namespace lightspeedAccessTests.Shops
 			Assert.Greater( shops.Count(), 0 );
 		}
 
-		[Test]
+		[ Test ]
 		public void GetShopsTestAsync()
 		{
 			var service = _factory.CreateShopsService( _config );
@@ -44,32 +44,43 @@ namespace lightspeedAccessTests.Shops
 			Assert.Greater( shops.Result.Count(), 0 );
 		}
 
-		[Test]
+		[ Test ]
 		public void PushToShopTest()
 		{
 			var service = _factory.CreateShopsService( _config );
-			service.UpdateOnHandQuantity( 5, 172, 1 );
+			service.UpdateOnHandQuantity( 5, 172, 1, 1 );
 		}
 
-		[Test]
+		[ Test ]
 		public void PushToShopAsyncTest()
 		{
 			var service = _factory.CreateShopsService( _config );
 			var cSource = new CancellationTokenSource();
-			var task = service.UpdateOnHandQuantityAsync( 5, 172, 1, cSource.Token );
+			var task = service.UpdateOnHandQuantityAsync( 5, 172, 1, 1, cSource.Token );
 			task.Wait();
 		}
 
 		//210000000007
 
-		[Test]
+		[ Test ]
 		public void GetItemsAsyncTest()
 		{
 			var service = _factory.CreateShopsService( _config );
 			var cSource = new CancellationTokenSource();
-			var task = service.GetItems( new List<String> { "210000000007" }, cSource.Token );
+			var task = service.GetItems( new List< String > { "210000000007" }, cSource.Token );
 			task.Wait();
 			Assert.Greater( task.Result.Count, 0 );
 		}
+
+		[ Test ]
+		public void GetItemFromSHopsAsyncTest()
+		{
+			var service = _factory.CreateShopsService( _config );
+			var cSource = new CancellationTokenSource();
+			var task = service.GetItems( 1, cSource.Token );
+			task.Wait();
+			Assert.Greater( task.Result.Count(), 0 );
+		}
+
 	}
 }

@@ -13,6 +13,7 @@ namespace LightspeedAccess.Models.Request
 	{
 		public int ItemId{ get; private set; }
 		public int StoreId{ get; private set; }
+		public int ItemShopRelationId{ get; private set; }
 		public int QuantityOnHand{ get; private set; }
 
 		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
@@ -29,7 +30,17 @@ namespace LightspeedAccess.Models.Request
 		{
 			var x = new LightspeedShopQuantity
 			{
-				itemShops = new List< ItemShop > { new ItemShop { ItemShopId = this.StoreId, QuantityOnHand = this.QuantityOnHand } }.ToArray()
+				ItemId = this.ItemId,
+				ItemShops = new List< ItemShop >
+				{
+					new ItemShop
+					{
+						ShopId = this.StoreId,
+						QuantityOnHand = this.QuantityOnHand,
+						ItemShopId = this.ItemShopRelationId,
+						ItemId = this.ItemId
+					}
+				}.ToArray()
 			};
 
 			return x;
@@ -39,17 +50,17 @@ namespace LightspeedAccess.Models.Request
 		{
 			var serializer = new XmlSerializer( typeof( LightspeedShopQuantity ) );
 			Stream stream = new System.IO.MemoryStream();
-			
-				serializer.Serialize( stream, GetRequestBody() );
-				return stream;
-			
+
+			serializer.Serialize( stream, GetRequestBody() );
+			return stream;
 		}
 
-		public UpdateOnHandQuantityRequest( int itemId, int shopId, int qoh )
+		public UpdateOnHandQuantityRequest( int itemId, int shopId, int itemShopRelationId, int qoh )
 		{
 			ItemId = itemId;
 			StoreId = shopId;
 			QuantityOnHand = qoh;
+			ItemShopRelationId = itemShopRelationId;
 		}
 
 		public override string ToString()

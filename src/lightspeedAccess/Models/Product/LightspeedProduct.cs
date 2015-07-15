@@ -8,53 +8,63 @@ using LightspeedAccess.Models.Request;
 
 namespace LightspeedAccess.Models.Product
 {
-	[XmlType( "Item" )]
+	[ XmlType( "Item" ) ]
 	public class LightspeedProduct
 	{
-		[XmlElement( "itemID" )]
-		public int ItemId { get; set; }
+		[ XmlElement( "itemID" ) ]
+		public int ItemId{ get; set; }
 
-		[XmlElement( "systemSku" )]
-		public string Sku { get; set; }
+		[ XmlElement( "customSku" ) ]
+		public string Sku{ get; set; }
+
+		[ XmlElement( "systemSku" ) ]
+		public string SystemSku{ get; set; }
+
+		//		[XmlElement( "ItemShops" )]
+		public ItemShop[] ItemShops{ get; set; }
 	}
 
-
-	[XmlType( "Item" )]
+	[ XmlType( "Item" ) ]
 	public class LightspeedShopQuantity
 	{
-//		[XmlElement( "itemID" )]
-//		public int ItemId { get; set; }
+		[ XmlElement( "itemID" ) ]
+		public int ItemId{ get; set; }
 
-		public ItemShop[] itemShops { get; set; }
+		public ItemShop[] ItemShops{ get; set; }
 	}
 
-	[XmlRoot( "Items", Namespace = "", IsNullable = false )]
+	[ XmlRoot( "Items", Namespace = "", IsNullable = false ) ]
 	public class LightspeedShopQuantityList
 	{
-		[XmlElement( typeof( LightspeedShopQuantity ) )]
-		public LightspeedShopQuantity[] Item { get; set; }
+		[ XmlElement( typeof( LightspeedShopQuantity ) ) ]
+		public LightspeedShopQuantity[] Item{ get; set; }
 
 		public int count = 1;
 	}
 
-	[XmlType( "ItemShop" )]
+	[ XmlType( "ItemShop" ) ]
 	public class ItemShop
 	{
-		[XmlElement( "itemShopID" )]
-		public int ItemShopId { get; set; }
+		[ XmlElement( "shopID" ) ]
+		public int ShopId{ get; set; }
 
-		[XmlElement( "qoh" )]
-		public int QuantityOnHand { get; set; }
+		[ XmlElement( "itemID" ) ]
+		public int ItemId{ get; set; }
+
+		[ XmlElement( "itemShopID" ) ]
+		public int ItemShopId{ get; set; }
+
+		[ XmlElement( "qoh" ) ]
+		public int QuantityOnHand{ get; set; }
 	}
 
-
-	[XmlRoot( "Items", Namespace = "", IsNullable = false )]
-	public class LightspeedProductList : IPaginatedResponse
+	[ XmlRoot( "Items", Namespace = "", IsNullable = false ) ]
+	public class LightspeedProductList: IPaginatedResponse
 	{
-		[XmlElement( typeof( LightspeedProduct ) )]
-		public LightspeedProduct[] Item { get; set; }
+		[ XmlElement( typeof( LightspeedProduct ) ) ]
+		public LightspeedProduct[] Item{ get; set; }
 
-		public int count { get; set; }
+		public int count{ get; set; }
 
 		public int GetCount()
 		{
@@ -63,10 +73,10 @@ namespace LightspeedAccess.Models.Product
 
 		public void Aggregate( IPaginatedResponse other )
 		{
-			var otherTyped = ( LightspeedProductList ) other;
-			if ( otherTyped != null )
+			var otherTyped = ( LightspeedProductList )other;
+			if( otherTyped != null )
 			{
-				if ( otherTyped.Item != null )
+				if( otherTyped.Item != null )
 					Item = Item.Concat( otherTyped.Item ).ToArray();
 			}
 		}

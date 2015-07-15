@@ -6,51 +6,59 @@ using System.Threading.Tasks;
 
 namespace LightspeedAccess.Models.Request
 {
-	public class GetItemsRequest : LightspeedRequest
+	public class GetItemsRequest: LightspeedRequest
 	{
-		private readonly List<int> ItemIds;
-		private readonly List<string> ItemSkus;
- 
-		protected override IEnumerable<LightspeedRestAPISegment> GetPath()
+		private readonly List< int > ItemIds;
+		private readonly List< string > ItemSkus;
+		private readonly int ShopId;
+
+		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
 		{
-			return new List<LightspeedRestAPISegment> { LightspeedRestAPISegment.Item };
+			return new List< LightspeedRestAPISegment > { LightspeedRestAPISegment.Item };
 		}
 
-		protected override Dictionary<LightspeedRequestPathParam, string> GetPathParams()
+		protected override Dictionary< LightspeedRequestPathParam, string > GetPathParams()
 		{
-			if ( ItemIds != null )
+			if( ItemIds != null )
 			{
-				if ( ItemIds.Count == 0 ) 
-				return new Dictionary<LightspeedRequestPathParam, string> { { LightspeedRequestPathParam.ItemId, LightspeedIdRangeBuilder.GetIdRangeParam( ItemIds ) } };
+				if( ItemIds.Count != 0 )
+					return new Dictionary< LightspeedRequestPathParam, string > { { LightspeedRequestPathParam.ItemId, LightspeedIdRangeBuilder.GetIdRangeParam( ItemIds ) } };
 			}
 
-			if ( ItemSkus != null )
+			if( ItemSkus != null )
 			{
-				if ( ItemSkus.Count == 0 )
-					return new Dictionary<LightspeedRequestPathParam, string> { { LightspeedRequestPathParam.SystemSku, LightspeedIdRangeBuilder.GetIdRangeParam( ItemSkus ) } };
+				if( ItemSkus.Count != 0 )
+					return new Dictionary< LightspeedRequestPathParam, string > { { LightspeedRequestPathParam.Or, LightspeedSkuRangeBuilder.GetIdRangeParam( ItemSkus ) }, { LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\"]" } };
 			}
-			return new Dictionary<LightspeedRequestPathParam, string>();
+
+			if( ShopId != 0 )
+				return new Dictionary< LightspeedRequestPathParam, string > { { LightspeedRequestPathParam.ShopId, this.ShopId.ToString() }, { LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\"]" } };
+
+			return new Dictionary< LightspeedRequestPathParam, string >();
 		}
 
-		public GetItemsRequest(IEnumerable<int> ids )
+		public GetItemsRequest( IEnumerable< int > ids )
 		{
 			ItemIds = ids.ToList();
 		}
 
-		public GetItemsRequest( IEnumerable<string> skus )
+		public GetItemsRequest( IEnumerable< string > skus )
 		{
 			ItemSkus = skus.ToList();
+		}
+
+		public GetItemsRequest( int shopId )
+		{
+			ShopId = shopId;
 		}
 
 		public override string ToString()
 		{
 			return "GetItemsRequest";
 		}
-
 	}
 
 	public class SucessApiResponse
 	{
-
 	}
 }

@@ -11,13 +11,13 @@ using LightspeedAccess.Services;
 
 namespace lightspeedAccess
 {
-	class AccountService : IAccountService
+	internal class AccountService: IAccountService
 	{
 		private readonly WebRequestService _webRequestServices;
 
 		public AccountService( LightspeedConfig config )
 		{
-			LightspeedLogger.Log.Debug( "Started LightspeedAccountService with config {0}", config.ToString() );	
+			LightspeedLogger.Log.Debug( "Started LightspeedAccountService with config {0}", config.ToString() );
 			_webRequestServices = new WebRequestService( config );
 		}
 
@@ -25,7 +25,7 @@ namespace lightspeedAccess
 		{
 			LightspeedLogger.Log.Debug( "Started getting account Id for current session" );
 			var request = new GetAccountRequest();
-			return this._webRequestServices.GetResponse<LightspeedAccountList>( request ).Account.First().AccountId;
+			return this._webRequestServices.GetResponse< LightspeedAccountList >( request ).Account.First().AccountId;
 		}
 	}
 }

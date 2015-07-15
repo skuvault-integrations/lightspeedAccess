@@ -8,23 +8,23 @@ using LightspeedAccess.Models.Request;
 
 namespace LightspeedAccess.Models.Shop
 {
-	[XmlType( "Shop" )]
+	[ XmlType( "Shop" ) ]
 	public class Shop
 	{
-		[XmlElement( "shopID" )]
-		public int ShopId { get; set; }
+		[ XmlElement( "shopID" ) ]
+		public int ShopId{ get; set; }
 
-		[XmlElement( "name" )]
-		public string ShopName { get; set; }
+		[ XmlElement( "name" ) ]
+		public string ShopName{ get; set; }
 	}
 
-	[XmlRoot( "Shops", Namespace = "", IsNullable = false )]
-	public class ShopsList : IPaginatedResponse
+	[ XmlRoot( "Shops", Namespace = "", IsNullable = false ) ]
+	public class ShopsList: IPaginatedResponse
 	{
-		[XmlElement( typeof( Shop ) )]
-		public Shop[] Shop { get; set; }
+		[ XmlElement( typeof( Shop ) ) ]
+		public Shop[] Shop{ get; set; }
 
-		public int count { get; set; }
+		public int count{ get; set; }
 
 		public int GetCount()
 		{
@@ -33,10 +33,10 @@ namespace LightspeedAccess.Models.Shop
 
 		public void Aggregate( IPaginatedResponse other )
 		{
-			var otherTyped = ( ShopsList ) other;
-			if ( otherTyped != null )
+			var otherTyped = ( ShopsList )other;
+			if( otherTyped != null )
 			{
-				if ( otherTyped.Shop != null )
+				if( otherTyped.Shop != null )
 					Shop = Shop.Concat( otherTyped.Shop ).ToArray();
 			}
 		}

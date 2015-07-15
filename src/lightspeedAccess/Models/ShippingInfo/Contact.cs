@@ -6,13 +6,13 @@ namespace LightspeedAccess.Models.ShippingInfo
 {
 	public class Contact
 	{
-		[XmlElement( typeof( LightspeedAddress ) )]
+		[ XmlElement( typeof( LightspeedAddress ) ) ]
 		public LightspeedAddress[] Addresses;
 
-		[XmlElement( typeof( LightspeedPhone ) )]
+		[ XmlElement( typeof( LightspeedPhone ) ) ]
 		public LightspeedPhone[] Phones;
 
-		[XmlElement( typeof( LightspeedEmail ) )]
+		[ XmlElement( typeof( LightspeedEmail ) ) ]
 		public LightspeedEmail[] Emails;
 	}
 }

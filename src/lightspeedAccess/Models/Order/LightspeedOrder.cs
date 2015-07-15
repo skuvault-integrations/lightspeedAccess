@@ -24,20 +24,20 @@ namespace LightspeedAccess.Models.Order
 		[ XmlArray( "SaleLines" ) ]
 		public SaleLine[] SaleLines{ get; set; }
 
-		[XmlElement( "timeStamp" )]
-		public DateTime DateTime { get; set; }
+		[ XmlElement( "timeStamp" ) ]
+		public DateTime DateTime{ get; set; }
 
-		[XmlElement( "total" )]
-		public LightspeedMoneyType Total { get; set; }
+		[ XmlElement( "total" ) ]
+		public LightspeedMoneyType Total{ get; set; }
 
 		public HashSet< LightspeedProduct > Products{ get; set; }
 
 		public ShipTo ShipTo{ get; set; }
 
-		[XmlElement( "shopID" )]
-		public int ShopId { get; set; }
+		[ XmlElement( "shopID" ) ]
+		public int ShopId{ get; set; }
 
-		public string ShopName { get; set; }
+		public string ShopName{ get; set; }
 	}
 
 	[ XmlRoot( "Sales", Namespace = "", IsNullable = false ) ]

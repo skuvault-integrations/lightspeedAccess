@@ -8,16 +8,16 @@ using System.Xml.Serialization;
 namespace lightspeedAccess.Models.Account
 {
 	[ XmlType( "Account" ) ]
-	class LightspeedAccountInfo
+	public class LightspeedAccountInfo
 	{
-		[XmlElement( "accountID" )]
-		public int AccountId { get; set; }
+		[ XmlElement( "accountID" ) ]
+		public int AccountId{ get; set; }
 	}
 
 	[ XmlRoot( "Accounts", Namespace = "", IsNullable = false ) ]
-	class LightspeedAccountList
+	public class LightspeedAccountList
 	{
-		[XmlElement( typeof( LightspeedAccountInfo ) )]
-		public LightspeedAccountInfo[] Account { get; set; }
+		[ XmlElement( typeof( LightspeedAccountInfo ) ) ]
+		public LightspeedAccountInfo[] Account{ get; set; }
 	}
 }

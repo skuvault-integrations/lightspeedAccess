@@ -6,20 +6,23 @@ using System.Threading.Tasks;
 
 namespace LightspeedAccess.Models.Request
 {
-	class GetShopRequest : LightspeedRequest, IRequestPagination
+	internal class GetShopRequest: LightspeedRequest, IRequestPagination
 	{
-		public int Limit { get; private set; }
-		public int Offset { get; private set; }
+		public int Limit{ get; private set; }
+		public int Offset{ get; private set; }
 
 		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
 		{
-			return new List<LightspeedRestAPISegment> { LightspeedRestAPISegment.Shop };
+			return new List< LightspeedRestAPISegment > { LightspeedRestAPISegment.Shop };
 		}
 
 		protected override Dictionary< LightspeedRequestPathParam, string > GetPathParams()
 		{
-			return new Dictionary<LightspeedRequestPathParam, string> {{ LightspeedRequestPathParam.Limit, Limit.ToString() }, 
-			{ LightspeedRequestPathParam.Offset, Offset.ToString() }};	
+			return new Dictionary< LightspeedRequestPathParam, string >
+			{
+				{ LightspeedRequestPathParam.Limit, Limit.ToString() },
+				{ LightspeedRequestPathParam.Offset, Offset.ToString() }
+			};
 		}
 
 		public GetShopRequest()

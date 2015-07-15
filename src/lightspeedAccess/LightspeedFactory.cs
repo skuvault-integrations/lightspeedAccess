@@ -16,22 +16,22 @@ namespace LightspeedAccess
 		ILigthspeedAuthService CreateLightspeedAuthService();
 	}
 
-	public sealed class LightspeedFactory : ILightspeedFactory
+	public sealed class LightspeedFactory: ILightspeedFactory
 	{
-		private string LightspeedClientId { get; set; }
-		private string LightspeedClientSecret { get; set; }
-		private string LightspeedRedirectUri { get; set; }
+		private string LightspeedClientId{ get; set; }
+		private string LightspeedClientSecret{ get; set; }
+		private string LightspeedRedirectUri{ get; set; }
 
-		public LightspeedFactory(string clientId, string clientSecret, string redirectUri)
+		public LightspeedFactory( string clientId, string clientSecret, string redirectUri )
 		{
 			LightspeedClientId = clientId;
 			LightspeedClientSecret = clientSecret;
 			LightspeedRedirectUri = redirectUri;
 		}
 
-		public ILightspeedOrdersService CreateOrdersService(LightspeedConfig config)
+		public ILightspeedOrdersService CreateOrdersService( LightspeedConfig config )
 		{
-			return new LightspeedOrdersService(config);
+			return new LightspeedOrdersService( config );
 		}
 
 		public ILightspeedShopService CreateShopsService( LightspeedConfig config )

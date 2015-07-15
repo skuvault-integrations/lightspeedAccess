@@ -7,7 +7,7 @@ using LightspeedAccess.Models.Request;
 
 namespace lightspeedAccess.Models.Request
 {
-	class GetAccountRequest : LightspeedRequest
+	internal class GetAccountRequest: LightspeedRequest
 	{
 		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
 		{
@@ -16,10 +16,10 @@ namespace lightspeedAccess.Models.Request
 
 		protected override Dictionary< LightspeedRequestPathParam, string > GetPathParams()
 		{
-			return new Dictionary<LightspeedRequestPathParam, string>();
+			return new Dictionary< LightspeedRequestPathParam, string >();
 		}
 
-		public override string ToString() 
+		public override string ToString()
 		{
 			return "GetAccountRequest";
 		}

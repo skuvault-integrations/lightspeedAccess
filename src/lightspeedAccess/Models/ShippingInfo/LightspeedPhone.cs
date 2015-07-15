@@ -7,9 +7,9 @@ using System.Xml.Serialization;
 
 namespace lightspeedAccess.Models.ShippingInfo
 {
-	[XmlType( "ContactPhone" )]
+	[ XmlType( "ContactPhone" ) ]
 	public class LightspeedPhone
 	{
-		public string number { get; set; }
+		public string number{ get; set; }
 	}
 }

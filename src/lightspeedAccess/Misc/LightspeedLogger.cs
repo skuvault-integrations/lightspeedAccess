@@ -7,7 +7,7 @@ using Netco.Logging;
 
 namespace LightspeedAccess.Misc
 {
-	class LightspeedLogger
+	internal class LightspeedLogger
 	{
 		public static ILogger Log{ get; private set; }
 

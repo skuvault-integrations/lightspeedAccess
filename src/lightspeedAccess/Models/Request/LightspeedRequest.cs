@@ -19,7 +19,7 @@ namespace LightspeedAccess.Models.Request
 			return null;
 		}
 
-		public string GetUri(string authToken)
+		public string GetUri( string authToken )
 		{
 			var segmentedPath = string.Empty;
 
@@ -27,7 +27,8 @@ namespace LightspeedAccess.Models.Request
 			segmentedPath = segmentedPath.TrimEnd( '/' );
 
 			var pathParams = GetPathParams();
-			if ( authToken != null ) pathParams.Add( LightspeedRequestPathParam.AuthToken, authToken );
+			if( authToken != null )
+				pathParams.Add( LightspeedRequestPathParam.AuthToken, authToken );
 
 			if( pathParams.Count != 0 )
 				segmentedPath = string.Concat( segmentedPath, "?" );
@@ -77,7 +78,11 @@ namespace LightspeedAccess.Models.Request
 		public static readonly LightspeedRequestPathParam TimeStamp = new LightspeedRequestPathParam( "timeStamp" );
 		public static readonly LightspeedRequestPathParam ItemId = new LightspeedRequestPathParam( "itemID" );
 		public static readonly LightspeedRequestPathParam ShipToId = new LightspeedRequestPathParam( "shipToID" );
+		public static readonly LightspeedRequestPathParam Or = new LightspeedRequestPathParam( "or" );
 		public static readonly LightspeedRequestPathParam SystemSku = new LightspeedRequestPathParam( "systemSku" );
+		public static readonly LightspeedRequestPathParam CustomSku = new LightspeedRequestPathParam( "customSku" );
+		public static readonly LightspeedRequestPathParam Completed = new LightspeedRequestPathParam( "completed" );
+		public static readonly LightspeedRequestPathParam ShopId = new LightspeedRequestPathParam( "ItemShops.shopID" );
 
 		public string Param{ get; private set; }
 
@@ -98,11 +103,22 @@ namespace LightspeedAccess.Models.Request
 			return string.Concat( LightspeedRangeOperator, ",[", list, "]" );
 		}
 
-		public static string GetIdRangeParam( IEnumerable<string> skus )
+		public static string GetIdRangeParam( IEnumerable< string > skus )
 		{
 			var list = string.Join( ",", skus );
 
 			return string.Concat( LightspeedRangeOperator, ",[", list, "]" );
+		}
+	}
+
+	public static class LightspeedSkuRangeBuilder
+	{
+		private static string LightspeedEqualsOperator = "%3D";
+
+		public static string GetIdRangeParam( IEnumerable< string > skus )
+		{
+			var expressions = skus.Select( s => String.Concat( LightspeedRequestPathParam.CustomSku, LightspeedEqualsOperator, s ) );
+			return string.Join( "|", expressions );
 		}
 	}
 
