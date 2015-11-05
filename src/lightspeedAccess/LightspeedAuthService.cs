@@ -13,7 +13,7 @@ using Netco.Extensions;
 
 namespace lightspeedAccess
 {
-	internal class LightspeedAuthService: ILigthspeedAuthService
+	public class LightspeedAuthService: ILigthspeedAuthService
 	{
 		private readonly string _ligthspeedClientId;
 		private readonly string _lightspeedClientSecret;

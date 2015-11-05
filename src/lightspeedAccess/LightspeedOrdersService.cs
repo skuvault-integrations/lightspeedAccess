@@ -18,7 +18,7 @@ using Netco.Extensions;
 
 namespace LightspeedAccess
 {
-	internal class LightspeedOrdersService: ILightspeedOrdersService
+	public class LightspeedOrdersService: ILightspeedOrdersService
 	{
 		private readonly WebRequestService _webRequestServices;
 

@@ -20,6 +20,9 @@ namespace LightspeedAccess.Models.Product
 		[ XmlElement( "systemSku" ) ]
 		public string SystemSku{ get; set; }
 
+		[ XmlElement( "manufacturerSku" ) ]
+		public string ManufacturerSku { get; set; }
+
 		//		[XmlElement( "ItemShops" )]
 		public ItemShop[] ItemShops{ get; set; }
 	}
