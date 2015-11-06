@@ -166,7 +166,7 @@ namespace LightspeedAccess.Services
 			LightspeedLogger.Log.Debug( "Expected number of pages for request {0} : {2}", r.ToString(), numPages );
 			for( int pageNum = 1; pageNum < numPages; pageNum++ )
 			{
-				LightspeedLogger.Log.Debug( "Processing page {0} for request {1}...", numPages, r.ToString() );
+				LightspeedLogger.Log.Debug( "Processing page {0} / {1} for request {2}...", pageNum, numPages, r.ToString() );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
 				additionalResponses.Add( await GetResponseAsync< T >( r, ctx ) );
 			}

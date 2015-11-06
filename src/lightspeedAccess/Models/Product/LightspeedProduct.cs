@@ -67,6 +67,7 @@ namespace LightspeedAccess.Models.Product
 		[ XmlElement( typeof( LightspeedProduct ) ) ]
 		public LightspeedProduct[] Item{ get; set; }
 
+		[ XmlAttribute ]
 		public int count{ get; set; }
 
 		public int GetCount()

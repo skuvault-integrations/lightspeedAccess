@@ -24,6 +24,7 @@ namespace LightspeedAccess.Models.Shop
 		[ XmlElement( typeof( Shop ) ) ]
 		public Shop[] Shop{ get; set; }
 
+		[ XmlAttribute ]
 		public int count{ get; set; }
 
 		public int GetCount()
