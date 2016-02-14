@@ -18,6 +18,9 @@ namespace LightspeedAccess.Models.Configuration
 		public static int DefaultTimeoutSeconds = 10;
 		public readonly int TimeoutSeconds;
 
+		public static readonly string LightspeedUtcTimezoneCode = "%2D00:00";
+		public static readonly string TimeFormat = "yyyy-MM-ddTHH:mm:ss";
+
 		public readonly string path = "https://api.merchantos.com/API/Account";
 
 		public LightspeedConfig()

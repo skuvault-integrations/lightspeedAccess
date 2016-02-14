@@ -23,7 +23,7 @@ namespace LightspeedAccess.Services
 
 		public WebRequestService( LightspeedConfig config )
 		{
-			_config = config;
+			this._config = config;
 		}
 
 		private static void ManageRequestBody( LightspeedRequest request, ref HttpWebRequest webRequest )
@@ -42,15 +42,17 @@ namespace LightspeedAccess.Services
 			var sr = new StreamReader( body );
 			var s = sr.ReadToEnd();
 
-			LightspeedLogger.Log.Debug( "Created request body for reqyesr {0} : {1}", request.ToString(), s );
+			LightspeedLogger.Log.Debug( "Created request body for request {0} : {1}", request.ToString(), s );
 
 			webRequest.ContentLength = s.Length;
 			Stream dataStream = webRequest.GetRequestStream();
-
-			for( var i = 0; i < s.Length; i++ )
+			var bytes = Encoding.UTF8.GetBytes( s );
+			foreach( var singleByte in bytes )
 			{
-				dataStream.WriteByte( Convert.ToByte( s[ i ] ) );
+				dataStream.WriteByte( singleByte );	
 			}
+			
+
 			dataStream.Close();
 		}
 
@@ -58,7 +60,7 @@ namespace LightspeedAccess.Services
 		{
 			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
 
-			var webRequest = this.CreateHttpWebRequest( _config.Endpoint + request.GetUri( _config.LightspeedAuthToken ) );
+			var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
 			ManageRequestBody( request, ref webRequest );
 
 			var response = webRequest.GetResponse();
@@ -71,7 +73,7 @@ namespace LightspeedAccess.Services
 			var result = ( T )deserializer.Deserialize( stream );
 			LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
 
-			var possibleAdditionalResponses = IterateThroughPagination< T >( request, result );
+			var possibleAdditionalResponses = this.IterateThroughPagination( request, result );
 
 			var aggregatedResult = result as IPaginatedResponse;
 			if( aggregatedResult != null )
@@ -86,10 +88,10 @@ namespace LightspeedAccess.Services
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
-			var webRequest = this.CreateHttpWebRequest( _config.Endpoint + request.GetUri( _config.LightspeedAuthToken ) );
+			var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
 			ManageRequestBody( request, ref webRequest );
 
-			var response = await ( GetWrappedAsyncResponse( webRequest, ctx ) );
+			var response = await ( this.GetWrappedAsyncResponse( webRequest, ctx ) );
 			var stream = response.GetResponseStream();
 
 			LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
@@ -99,7 +101,7 @@ namespace LightspeedAccess.Services
 			var result = ( T )deserializer.Deserialize( stream );
 
 			LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
-			var possibleAdditionalResponses = await IterateThroughPaginationAsync< T >( request, result, ctx );
+			var possibleAdditionalResponses = await this.IterateThroughPaginationAsync< T >( request, result, ctx );
 
 			var aggregatedResult = result as IPaginatedResponse;
 
@@ -142,7 +144,7 @@ namespace LightspeedAccess.Services
 			{
 				LightspeedLogger.Log.Debug( "Processing page {0} for request {1}...", numPages, r.ToString() );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
-				additionalResponses.Add( GetResponse< T >( r ) );
+				additionalResponses.Add( this.GetResponse< T >( r ) );
 			}
 
 			return additionalResponses;
@@ -168,7 +170,7 @@ namespace LightspeedAccess.Services
 			{
 				LightspeedLogger.Log.Debug( "Processing page {0} / {1} for request {2}...", pageNum, numPages, r.ToString() );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
-				additionalResponses.Add( await GetResponseAsync< T >( r, ctx ) );
+				additionalResponses.Add( await this.GetResponseAsync< T >( r, ctx ) );
 			}
 
 			return additionalResponses;
@@ -181,9 +183,9 @@ namespace LightspeedAccess.Services
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
 			request.Method = WebRequestMethods.Http.Get;
-			if( _config.LightspeedAuthToken == null )
+			if( this._config.LightspeedAuthToken == null )
 				request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
-			request.Timeout = _config.TimeoutSeconds * 1000;
+			request.Timeout = this._config.TimeoutSeconds * 1000;
 
 			return request;
 		}
@@ -197,18 +199,50 @@ namespace LightspeedAccess.Services
 			return string.Concat( "Basic ", authInfo );
 		}
 
-		private static async Task< HttpWebResponse > GetWrappedAsyncResponse( HttpWebRequest request, CancellationToken ct )
+		private static void LogRequestFailure( WebException ex, HttpWebRequest request )
+		{
+			if ( ex.Status == WebExceptionStatus.ProtocolError )
+			{
+				var response = ex.Response as HttpWebResponse;
+				if ( response != null )
+				{
+					var requestUri = request.Address.AbsolutePath;
+					var requestBody = "N/A";
+					try
+					{
+						var requestBodyStream = request.GetRequestStream();
+						requestBodyStream.Seek( 0, SeekOrigin.Begin );
+						var sr = new StreamReader( requestBodyStream );
+						requestBody = sr.ReadToEnd();
+					}
+					catch ( Exception )
+					{
+
+					}
+
+					LightspeedLogger.Log.Debug( "Got {0} code response from server with message {1}. Request was: {2} with body {3}", response.StatusCode, ex.Message, requestUri, requestBody );
+				}
+			}
+		}
+
+		private async Task< HttpWebResponse > GetWrappedAsyncResponse( HttpWebRequest request, CancellationToken ct )
 		{
 			using( ct.Register( request.Abort ) )
 			{
 				try
 				{
-					var response = await request.GetResponseAsync();
+					WebResponse response = null;
+					await ActionPolicies.SubmitAsync.Do( async () =>
+					{
+						response = await request.GetResponseAsync();
+					} );
+
 					ct.ThrowIfCancellationRequested();
 					return ( HttpWebResponse )response;
 				}
 				catch( WebException ex )
 				{
+					LogRequestFailure( ex, request );
 					if( ct.IsCancellationRequested )
 						throw new OperationCanceledException( ex.Message, ex, ct );
 

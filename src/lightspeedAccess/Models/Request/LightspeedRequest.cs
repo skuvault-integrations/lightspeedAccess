@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using LightspeedAccess.Models.Configuration;
 
 namespace LightspeedAccess.Models.Request
 {
@@ -76,6 +77,7 @@ namespace LightspeedAccess.Models.Request
 		public static readonly LightspeedRequestPathParam AuthToken = new LightspeedRequestPathParam( "oauth_token" );
 		public static readonly LightspeedRequestPathParam LoadRelations = new LightspeedRequestPathParam( "load_relations" );
 		public static readonly LightspeedRequestPathParam TimeStamp = new LightspeedRequestPathParam( "timeStamp" );
+		public static readonly LightspeedRequestPathParam CreateTime = new LightspeedRequestPathParam( "createTime" );
 		public static readonly LightspeedRequestPathParam ItemId = new LightspeedRequestPathParam( "itemID" );
 		public static readonly LightspeedRequestPathParam ShipToId = new LightspeedRequestPathParam( "shipToID" );
 		public static readonly LightspeedRequestPathParam Or = new LightspeedRequestPathParam( "or" );
@@ -122,16 +124,25 @@ namespace LightspeedAccess.Models.Request
 		}
 	}
 
+	public static class LightspeedGreaterThanBuilder
+	{
+		private static string LightspeedGreaterThanOperator = "%3E"; // > operator
+		public static string GetDateGreaterParam( DateTime dateUtc )
+		{
+			var dateStr = string.Concat( dateUtc.ToString( LightspeedConfig.TimeFormat ), LightspeedConfig.LightspeedUtcTimezoneCode );
+			return string.Concat( LightspeedGreaterThanOperator, ',', dateStr );
+		}
+		
+	}
+
 	public static class LightspeedDateRangeParamBuilder
 	{
 		private static string LightspeedBetweenOperator = "%3E%3C"; // >< operator
-		private static string LigthspeedTimeZoneCode = "%2D00:00"; // UTC GMT
-		private static string TimeFormat = "yyyy-MM-ddTHH:mm:ss";
 
 		public static string GetDateDateRangeParam( DateTime fromDateUtc, DateTime toDateUtc )
 		{
-			var fromDateStr = string.Concat( fromDateUtc.ToString( TimeFormat ), LigthspeedTimeZoneCode );
-			var toDateStr = string.Concat( toDateUtc.ToString( TimeFormat ), LigthspeedTimeZoneCode );
+			var fromDateStr = string.Concat( fromDateUtc.ToString( LightspeedConfig.TimeFormat ), LightspeedConfig.LightspeedUtcTimezoneCode );
+			var toDateStr = string.Concat( toDateUtc.ToString( LightspeedConfig.TimeFormat ), LightspeedConfig.LightspeedUtcTimezoneCode );
 			return string.Concat( LightspeedBetweenOperator, ',', fromDateStr, ',', toDateStr );
 		}
 	}

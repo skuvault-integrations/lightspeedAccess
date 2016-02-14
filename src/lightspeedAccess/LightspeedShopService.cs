@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -27,15 +25,15 @@ namespace LightspeedAccess
 		public LightspeedShopService( LightspeedConfig config )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedShopsService with config {0}", config.ToString() );
-			_webRequestServices = new WebRequestService( config );
-			_config = config;
+			this._webRequestServices = new WebRequestService( config );
+			this._config = config;
 		}
 
 		public IEnumerable< Shop > GetShops()
 		{
 			LightspeedLogger.Log.Debug( "Starting to get Shops" );
 			var getShopsRequest = new GetShopRequest();
-			var shops = _webRequestServices.GetResponse< ShopsList >( getShopsRequest ).Shop;
+			var shops = this._webRequestServices.GetResponse< ShopsList >( getShopsRequest ).Shop;
 			if( shops == null )
 				return new List< Shop >();
 
@@ -48,7 +46,7 @@ namespace LightspeedAccess
 			LightspeedLogger.Log.Debug( "Starting to get Shops" );
 
 			var getShopsRequest = new GetShopRequest();
-			var shops = ( await _webRequestServices.GetResponseAsync< ShopsList >( getShopsRequest, ctx ) ).Shop;
+			var shops = ( await this._webRequestServices.GetResponseAsync< ShopsList >( getShopsRequest, ctx ) ).Shop;
 			if( shops == null )
 				return new List< Shop >();
 
@@ -60,7 +58,7 @@ namespace LightspeedAccess
 		{
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity" );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationID, quantity );
-			_webRequestServices.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest );
+			this._webRequestServices.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest );
 			LightspeedLogger.Log.Debug( "Quantity updated successfully" );
 		}
 
@@ -68,9 +66,7 @@ namespace LightspeedAccess
 		{
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity" );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
-			await ActionPolicies.SubmitAsync.Do( async () =>
-				await _webRequestServices.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, ctx )
-				);
+			await this._webRequestServices.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, ctx );
 
 			LightspeedLogger.Log.Debug( "Quantity updated successfully" );
 		}
@@ -82,43 +78,49 @@ namespace LightspeedAccess
 
 			var dictionary = new Dictionary< string, LightspeedProduct >();
 
-			await ActionPolicies.SubmitAsync.Do( async () =>
+			var result = await this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemRequest, ctx );
+			if( result.Item != null )
 			{
-				var result = await _webRequestServices.GetResponseAsync< LightspeedProductList >( getItemRequest, ctx );
-				if( result.Item != null )
+				LightspeedLogger.Log.Debug( "Got {0} entries in item sku index", result.Item.Length );
+				result.Item.ToList().Distinct().ForEach( i =>
 				{
-					LightspeedLogger.Log.Debug( "Got {0} entries in item sku index", result.Item.Length );
-					result.Item.ToList().Distinct().ForEach( i =>
-					{
-						dictionary[ i.Sku ] = i;
-					} );
-				}
-			} );
+					dictionary[ i.Sku ] = i;
+				} );
+			}
 			return dictionary;
+		}
+
+		private async Task<IEnumerable<LightspeedProduct>> ExecuteGetItemsRequest( GetItemsRequest request, CancellationToken ctx ) {
+			var result = new List<LightspeedProduct>();
+			var response = await this._webRequestServices.GetResponseAsync<LightspeedProductList>( request, ctx );
+			if ( response.Item != null )
+				result = response.Item.ToList();
+			return result;			
+		} 
+
+		public async Task< IEnumerable< LightspeedProduct > > GetItemsCreatedInShopAsync( int shopId, DateTime createTimeUtc, CancellationToken ctx )
+		{
+			LightspeedLogger.Log.Debug( "Getting items, created in shop {0} after {1}", shopId, createTimeUtc );
+			var getItemRequest = new GetItemsRequest( shopId, createTimeUtc );
+			var result = await this.ExecuteGetItemsRequest( getItemRequest, ctx );
+			LightspeedLogger.Log.Debug( "Getting {0} items updated after {1} in shop {2}", result.Count(), createTimeUtc, shopId );
+			return result;
 		}
 
 		public async Task< IEnumerable< LightspeedProduct > > GetItems( int shopId, CancellationToken ctx )
 		{
 			var getItemRequest = new GetItemsRequest( shopId );
-			var result = new List< LightspeedProduct >();
-			await ActionPolicies.SubmitAsync.Do( async () =>
-			{
-				var response = await _webRequestServices.GetResponseAsync< LightspeedProductList >( getItemRequest, ctx );
-				if( response.Item != null )
-					result = response.Item.ToList();
-			} );
-
-			return result;
+			return await this.ExecuteGetItemsRequest( getItemRequest, ctx );
 		}
 
 		public ShopOrder MakeOrderRequest< T >( string endpoint, string token, T body, string method ) where T : ShopOrderBase
 		{
-			var uri = new Uri( _config.Endpoint + endpoint + "?oauth_token=" + token );
+			var uri = new Uri( this._config.Endpoint + endpoint + "?oauth_token=" + token );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
 			request.Method = method;
 			var serializer = new XmlSerializer( typeof( T ) );
-			Stream requestStream = new System.IO.MemoryStream();
+			Stream requestStream = new MemoryStream();
 
 			serializer.Serialize( requestStream, body );
 

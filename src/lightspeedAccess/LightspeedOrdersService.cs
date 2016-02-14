@@ -149,7 +149,7 @@ namespace LightspeedAccess
 
 		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( IEnumerable< LightspeedOrder > orders, CancellationToken ctx )
 		{
-			LightspeedLogger.Log.Debug( "Started getting products for orders" );
+			LightspeedLogger.Log.Warn( "Started getting products for orders" );
 			var itemIds = orders.Where( s => s.SaleLines != null ).ToList().SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ).Where( id => id != 0 ) ).ToHashSet();
 
 			var result = new List< LightspeedProduct >();
@@ -205,13 +205,13 @@ namespace LightspeedAccess
 
 			var rawOrders = new List< LightspeedOrder >();
 
-			await ActionPolicies.SubmitAsync.Do( async () =>
-			{
+//			await ActionPolicies.SubmitAsync.Do( async () =>
+//			{
 				var response =
 					( await _webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx ) );
 				if( response.Sale != null )
 					rawOrders = response.Sale.ToList();
-			} );
+//			} );
 
 			if( rawOrders.Count == 0 )
 				return rawOrders;

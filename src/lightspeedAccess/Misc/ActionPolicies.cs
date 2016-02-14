@@ -31,7 +31,7 @@ namespace LightspeedAccess.Misc
 		private static readonly ActionPolicyAsync _lightspeedSumbitAsyncPolicy =
 			ActionPolicyAsync.Handle< Exception >().RetryAsync( 10, async ( ex, i ) =>
 			{
-				LightspeedLogger.Log.Trace( ex, "Retrying Lightspeed API submit call for the {0} time", i );
+				LightspeedLogger.Log.Warn( ex, "Retrying Lightspeed API submit call for the {0} time", i );
 				await Task.Delay( TimeSpan.FromSeconds( RetryIntervalSeconds ) );
 			} );
 	}

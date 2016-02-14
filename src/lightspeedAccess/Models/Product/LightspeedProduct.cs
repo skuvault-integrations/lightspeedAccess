@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -9,22 +10,66 @@ using LightspeedAccess.Models.Request;
 namespace LightspeedAccess.Models.Product
 {
 	[ XmlType( "Item" ) ]
+	[ DataContract ]
 	public class LightspeedProduct
 	{
+		[ DataMember( Order = 1) ]
 		[ XmlElement( "itemID" ) ]
 		public int ItemId{ get; set; }
 
 		[ XmlElement( "customSku" ) ]
+		[ DataMember( Order = 2 ) ]
 		public string Sku{ get; set; }
 
 		[ XmlElement( "systemSku" ) ]
+		[ DataMember( Order = 3 ) ]
 		public string SystemSku{ get; set; }
 
 		[ XmlElement( "manufacturerSku" ) ]
+		[ DataMember( Order = 4 ) ]
 		public string ManufacturerSku { get; set; }
 
-		//		[XmlElement( "ItemShops" )]
+		[ DataMember( Order = 5 ) ]
 		public ItemShop[] ItemShops{ get; set; }
+
+		public LightspeedProduct()
+		{
+		}
+
+		public override int GetHashCode()
+		{
+			if( this.SystemSku == null )
+				return 42;
+			unchecked
+			{
+				var hash = 5381;
+				foreach( var c in this.SystemSku )
+				{
+					hash = ( hash * 33 ) ^ c;
+				}
+				return hash;
+			}
+		}
+
+		public bool Equals( LightspeedProduct other )
+		{
+			if ( ReferenceEquals( null, other ) )
+				return false;
+			if ( ReferenceEquals( this, other ) )
+				return true;
+			return string.Equals( this.SystemSku, other.SystemSku, StringComparison.InvariantCultureIgnoreCase );
+		}
+
+		public override bool Equals( object obj )
+		{
+			if ( ReferenceEquals( null, obj ) )
+				return false;
+			if ( ReferenceEquals( this, obj ) )
+				return true;
+			if ( obj.GetType() != this.GetType() )
+				return false;
+			return this.Equals( ( LightspeedProduct ) obj );
+		}		
 	}
 
 	[ XmlType( "Item" ) ]
@@ -46,15 +91,19 @@ namespace LightspeedAccess.Models.Product
 	}
 
 	[ XmlType( "ItemShop" ) ]
+	[ DataContract ]
 	public class ItemShop
 	{
 		[ XmlElement( "shopID" ) ]
+		[ DataMember( Order = 1) ]
 		public int ShopId{ get; set; }
 
 		[ XmlElement( "itemID" ) ]
+		[ DataMember( Order = 2 ) ]
 		public int ItemId{ get; set; }
 
 		[ XmlElement( "itemShopID" ) ]
+		[ DataMember( Order = 3 ) ]
 		public int ItemShopId{ get; set; }
 
 		[ XmlElement( "qoh" ) ]
