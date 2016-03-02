@@ -39,21 +39,23 @@ namespace LightspeedAccess.Services
 			webRequest.ContentType = "text/xml";
 
 			body.Seek( 0, SeekOrigin.Begin );
-			var sr = new StreamReader( body );
-			var s = sr.ReadToEnd();
 
-			LightspeedLogger.Log.Debug( "Created request body for request {0} : {1}", request.ToString(), s );
-
-			webRequest.ContentLength = s.Length;
-			Stream dataStream = webRequest.GetRequestStream();
-			var bytes = Encoding.UTF8.GetBytes( s );
-			foreach( var singleByte in bytes )
+			using ( var sr = new StreamReader( body ) )
 			{
-				dataStream.WriteByte( singleByte );	
-			}
-			
+				var s = sr.ReadToEnd();
 
-			dataStream.Close();
+				LightspeedLogger.Log.Debug( "Created request body for request {0} : {1}", request.ToString(), s );
+
+				webRequest.ContentLength = s.Length;
+				Stream dataStream = webRequest.GetRequestStream();
+				var bytes = Encoding.UTF8.GetBytes( s );
+				foreach ( var singleByte in bytes )
+				{
+					dataStream.WriteByte( singleByte );
+				}
+
+				dataStream.Close();
+			}
 		}
 
 		public T GetResponse< T >( LightspeedRequest request )
@@ -63,26 +65,29 @@ namespace LightspeedAccess.Services
 			var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
 			ManageRequestBody( request, ref webRequest );
 
-			var response = webRequest.GetResponse();
-			var stream = response.GetResponseStream();
-
-			LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
-			var deserializer =
-				new XmlSerializer( typeof( T ) );
-
-			var result = ( T )deserializer.Deserialize( stream );
-			LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
-
-			var possibleAdditionalResponses = this.IterateThroughPagination( request, result );
-
-			var aggregatedResult = result as IPaginatedResponse;
-			if( aggregatedResult != null )
+			using ( var response = webRequest.GetResponse() )
 			{
-				LightspeedLogger.Log.Debug( "Aggregating paginated results for request {0}", request.ToString() );
-				possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse )resp ) );
-			}
+				var stream = response.GetResponseStream();
 
-			return result;
+				LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
+				var deserializer =
+					new XmlSerializer( typeof( T ) );
+
+				var result = ( T ) deserializer.Deserialize( stream );
+				LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
+
+				var possibleAdditionalResponses = this.IterateThroughPagination( request, result );
+
+				var aggregatedResult = result as IPaginatedResponse;
+				if ( aggregatedResult != null )
+				{
+					LightspeedLogger.Log.Debug( "Aggregating paginated results for request {0}", request.ToString() );
+					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
+				}
+
+				response.Close();
+				return result;
+			}
 		}
 
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, CancellationToken ctx )
@@ -91,27 +96,31 @@ namespace LightspeedAccess.Services
 			var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
 			ManageRequestBody( request, ref webRequest );
 
-			var response = await ( this.GetWrappedAsyncResponse( webRequest, ctx ) );
-			var stream = response.GetResponseStream();
 
-			LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
-			var deserializer =
-				new XmlSerializer( typeof( T ) );
-
-			var result = ( T )deserializer.Deserialize( stream );
-
-			LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
-			var possibleAdditionalResponses = await this.IterateThroughPaginationAsync< T >( request, result, ctx );
-
-			var aggregatedResult = result as IPaginatedResponse;
-
-			if( aggregatedResult != null )
+			using ( var response = await ( this.GetWrappedAsyncResponse( webRequest, ctx ) ) )
 			{
-				LightspeedLogger.Log.Debug( "Aggregating paginated results for request {0}", request.ToString() );
-				possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse )resp ) );
-			}
+				var stream = response.GetResponseStream();
 
-			return result;
+				LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
+				var deserializer =
+					new XmlSerializer( typeof( T ) );
+
+				var result = ( T ) deserializer.Deserialize( stream );
+
+				LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
+				var possibleAdditionalResponses = await this.IterateThroughPaginationAsync( request, result, ctx );
+
+				var aggregatedResult = result as IPaginatedResponse;
+
+				if ( aggregatedResult != null )
+				{
+					LightspeedLogger.Log.Debug( "Aggregating paginated results for request {0}", request.ToString() );
+					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
+				}
+
+				response.Close();
+				return result;
+			}
 		}
 
 		private static bool NeedToIterateThroughPagination< T >( T response, LightspeedRequest r )

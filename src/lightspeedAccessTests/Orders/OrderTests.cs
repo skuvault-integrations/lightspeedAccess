@@ -62,9 +62,8 @@ namespace lightspeedAccessTests.Orders
 		{
 			var service = _factory.CreateOrdersService( _config );
 
-			var startDate = DateTime.ParseExact( "2015-06-16T15:40:03", "yyyy-MM-ddTHH:mm:ss",
-				CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal );
-			var endDate = startDate.Add( new TimeSpan( 10, 0, 0, 0 ) );
+			var endDate = DateTime.Now;
+			var startDate = endDate.AddMonths( -6 );
 
 			var cSource = new CancellationTokenSource();
 			var orders = service.GetOrdersAsync( startDate, endDate, cSource.Token );
