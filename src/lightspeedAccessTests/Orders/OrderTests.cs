@@ -72,6 +72,24 @@ namespace lightspeedAccessTests.Orders
 			Assert.Greater( orders.Result.Count(), 0 );
 		}
 
+		[Test]
+		public void OrderServiceThrottlerTestAsync()
+		{
+			var service = _factory.CreateOrdersService( _config );
+
+			var endDate = DateTime.Now;
+			var startDate = endDate.AddMonths( -6 );
+
+			var cSource = new CancellationTokenSource();
+
+			for ( int i = 0; i < 120; i++ )
+			{
+				service.GetOrdersAsync( startDate, endDate, cSource.Token ).Wait();
+			}
+			
+			Assert.Greater( 5, 0 );
+		}
+
 		[ Test ]
 		public void SmokeTest()
 		{

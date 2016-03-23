@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using LightspeedAccess.Misc;
@@ -21,11 +18,13 @@ namespace LightspeedAccess
 	public class LightspeedOrdersService: ILightspeedOrdersService
 	{
 		private readonly WebRequestService _webRequestServices;
+		private readonly ThrottlerAsync throttler;
 
 		public LightspeedOrdersService( LightspeedConfig config )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedOrdersService with config {0}", config.ToString() );
-			_webRequestServices = new WebRequestService( config );
+			this.throttler = new ThrottlerAsync();
+			this._webRequestServices = new WebRequestService( config, this.throttler );
 		}
 
 		public IEnumerable< LightspeedOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
@@ -102,13 +101,9 @@ namespace LightspeedAccess
 			var getShipInfoRequest = new GetShipInfoRequest( shipIds );
 
 			var result = new Dictionary< int, ShipTo >();
-			ActionPolicies.Submit.Do( () =>
-			{
-				var response = _webRequestServices.GetResponse< ShipInfoList >( getShipInfoRequest ).ShipTo;
-				if( response != null )
-					result = response.Where( st => st.SaleId != 0 ).Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).ToDictionary( x => x.Item1, x => x.Item2 );
-			} );
-
+			var response = this._webRequestServices.GetResponse< ShipInfoList >( getShipInfoRequest ).ShipTo;
+			if( response != null )
+				result = response.Where( st => st.SaleId != 0 ).Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).ToDictionary( x => x.Item1, x => x.Item2 );
 			LightspeedLogger.Log.Debug( "Got {0} shipping info entries", result.Count );
 			return result;
 		}
@@ -118,12 +113,9 @@ namespace LightspeedAccess
 			LightspeedLogger.Log.Debug( "Started getting shop names..." );
 
 			var result = new Dictionary< int, string >();
-			ActionPolicies.Submit.Do( () =>
-			{
-				var response = _webRequestServices.GetResponse< ShopsList >( new GetShopRequest() ).Shop;
-				if( response != null )
-					result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
-			} );
+			var response = this._webRequestServices.GetResponse< ShopsList >( new GetShopRequest() ).Shop;
+			if( response != null )
+				result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
 
 			LightspeedLogger.Log.Debug( "Got {0} shop entries", result.Count );
 
@@ -135,12 +127,9 @@ namespace LightspeedAccess
 			LightspeedLogger.Log.Debug( "Started getting shop names..." );
 			var result = new Dictionary< int, string >();
 
-			await ActionPolicies.SubmitAsync.Do( async () =>
-			{
-				var response = ( await _webRequestServices.GetResponseAsync< ShopsList >( new GetShopRequest(), ctx ) ).Shop;
-				if( response != null )
-					result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
-			} );
+			var response = ( await this._webRequestServices.GetResponseAsync< ShopsList >( new GetShopRequest(), ctx ) ).Shop;
+			if( response != null )
+				result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
 
 			LightspeedLogger.Log.Debug( "Got {0} shop entries", result.Count );
 
@@ -158,13 +147,9 @@ namespace LightspeedAccess
 
 			var getItemsRequest = new GetItemsRequest( itemIds );
 
-			await ActionPolicies.SubmitAsync.Do(
-				async () =>
-				{
-					var response = ( await _webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx ) );
-					if( response.Item != null )
-						result = response.Item.ToList();
-				} );
+			var response = ( await this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx ) );
+			if( response.Item != null )
+				result = response.Item.ToList();
 
 			LightspeedLogger.Log.Debug( "Got {0} products for orders", result.Count );
 			return result;
@@ -178,20 +163,9 @@ namespace LightspeedAccess
 			var getShipInfoRequest = new GetShipInfoRequest( shipIds );
 
 			var result = new Dictionary< int, ShipTo >();
-			await ActionPolicies.SubmitAsync.Do( async () =>
-			{
-				try
-				{
-					var response = ( await _webRequestServices.GetResponseAsync< ShipInfoList >( getShipInfoRequest, ctx ) ).ShipTo;
-					if( response != null )
-						result = response.Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).Where( x => x.Item1 != 0 ).ToDictionary( x => x.Item1, x => x.Item2 );
-				}
-				catch( WebException e )
-				{
-					var reader2 = new StreamReader( e.Response.GetResponseStream() );
-					LightspeedLogger.Log.Debug( "Could not retrieve order shipping info ({0} : {1}). Probably because of older channel account, that has insufficient permissions for that. Please, create another channel account with the same credetials and disable this one", reader2.ReadToEnd(), e.Message );
-				}
-			} );
+			var response = ( await this._webRequestServices.GetResponseAsync< ShipInfoList >( getShipInfoRequest, ctx ) ).ShipTo;
+			if( response != null )
+				result = response.Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).Where( x => x.Item1 != 0 ).ToDictionary( x => x.Item1, x => x.Item2 );
 
 			LightspeedLogger.Log.Debug( "Got {0} shipping info entries", result.Count );
 			return result;
@@ -205,22 +179,19 @@ namespace LightspeedAccess
 
 			var rawOrders = new List< LightspeedOrder >();
 
-//			await ActionPolicies.SubmitAsync.Do( async () =>
-//			{
-				var response =
-					( await _webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx ) );
-				if( response.Sale != null )
-					rawOrders = response.Sale.ToList();
-//			} );
+			var response =
+				( await this._webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx ) );
+			if( response.Sale != null )
+				rawOrders = response.Sale.ToList();
 
 			if( rawOrders.Count == 0 )
 				return rawOrders;
 
 			LightspeedLogger.Log.Debug( "Got {0} raw orders", rawOrders.Count );
 
-			var items = await GetItemsAsync( rawOrders, ctx );
-			var shipInfos = await GetShipInfoAsync( rawOrders, ctx );
-			var shopsNames = await GetShopNamesAsync( ctx );
+			var items = await this.GetItemsAsync( rawOrders, ctx );
+			var shipInfos = await this.GetShipInfoAsync( rawOrders, ctx );
+			var shopsNames = await this.GetShopNamesAsync( ctx );
 
 			LightspeedLogger.Log.Debug( "Adding shop info, sale lines and ship info to raw orders..." );
 			rawOrders.ForEach( o =>

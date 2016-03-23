@@ -53,6 +53,7 @@
     <Compile Include="LightspeedShopService.cs" />
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\LightspeedLogger.cs" />
+    <Compile Include="Misc\ThrottlerAsync.cs" />
     <Compile Include="Models\Account\LightspeedAccountInfo.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Models\Request\GetAccountRequest.cs" />

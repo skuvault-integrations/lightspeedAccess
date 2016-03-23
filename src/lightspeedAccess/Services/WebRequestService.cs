@@ -20,10 +20,12 @@ namespace LightspeedAccess.Services
 	internal class WebRequestService
 	{
 		private readonly LightspeedConfig _config;
+		private readonly ThrottlerAsync _throttler;
 
-		public WebRequestService( LightspeedConfig config )
+		public WebRequestService( LightspeedConfig config, ThrottlerAsync throttler )
 		{
 			this._config = config;
+			this._throttler = throttler;
 		}
 
 		private static void ManageRequestBody( LightspeedRequest request, ref HttpWebRequest webRequest )
@@ -240,12 +242,7 @@ namespace LightspeedAccess.Services
 			{
 				try
 				{
-					WebResponse response = null;
-					await ActionPolicies.SubmitAsync.Do( async () =>
-					{
-						response = await request.GetResponseAsync();
-					} );
-
+					var response = await this._throttler.ExecuteAsync( request.GetResponseAsync );
 					ct.ThrowIfCancellationRequested();
 					return ( HttpWebResponse )response;
 				}

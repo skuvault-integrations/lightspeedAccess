@@ -18,7 +18,7 @@ namespace lightspeedAccess
 		public AccountService( LightspeedConfig config )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedAccountService with config {0}", config.ToString() );
-			_webRequestServices = new WebRequestService( config );
+			_webRequestServices = new WebRequestService( config, null );
 		}
 
 		public int GetAccoundId()

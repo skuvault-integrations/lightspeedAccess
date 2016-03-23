@@ -25,7 +25,7 @@ namespace LightspeedAccess
 		public LightspeedShopService( LightspeedConfig config )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedShopsService with config {0}", config.ToString() );
-			this._webRequestServices = new WebRequestService( config );
+			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync() );
 			this._config = config;
 		}
 
