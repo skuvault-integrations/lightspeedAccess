@@ -94,14 +94,21 @@ namespace LightspeedAccess.Misc
 		private async Task WaitIfNeededAsync()
 		{
 			await this.semaphore.WaitAsync();
-			this.UpdateRequestQuoteFromTimer();
-
-			if ( this._remainingQuota != 0 )
+			try
 			{
-				this.semaphore.Release();
-				return;
+				this.UpdateRequestQuoteFromTimer();
+
+				if ( this._remainingQuota != 0 )
+				{
+//					this.semaphore.Release();
+					return;
+				}
 			}
-			this.semaphore.Release();
+			finally
+			{
+				this.semaphore.Release();				
+			}
+
 			LightspeedLogger.Log.Debug( "Throttler: quota exceeded. Waiting..." );
 			await this._delay();
 		}
@@ -109,10 +116,17 @@ namespace LightspeedAccess.Misc
 		private async void SubtractQuota()
 		{
 			await this.semaphore.WaitAsync();
-			this._remainingQuota--;
-			if( this._remainingQuota < 0 )
-				this._remainingQuota = 0;
-			this.semaphore.Release();
+			try
+			{
+				this._remainingQuota--;
+				if ( this._remainingQuota < 0 )
+					this._remainingQuota = 0;
+			}
+			finally
+			{
+				this.semaphore.Release();
+			}
+
 			this._requestTimer.Start();
 			LightspeedLogger.Log.Debug( "Throttler: substracted quota, now available {0}", this._remainingQuota );
 		}
