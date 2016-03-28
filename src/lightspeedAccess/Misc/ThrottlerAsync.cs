@@ -100,7 +100,6 @@ namespace LightspeedAccess.Misc
 
 				if ( this._remainingQuota != 0 )
 				{
-//					this.semaphore.Release();
 					return;
 				}
 			}
