@@ -30,11 +30,13 @@ namespace LightspeedAccess.Misc
 			this._maxRetryCount = maxRetryCount;
 		}
 
+		private const int LightspeedBucketSize = 180;
+		private const int LightspeedDripRate = 3;
+
 		// default throttler that implements Lightspeed leaky bucket
-		public ThrottlerAsync(): this( 60, elapsedTimeSeconds => elapsedTimeSeconds, () => Task.Delay( 60 * 1000 ), 20 )
+		public ThrottlerAsync(): this( LightspeedBucketSize, elapsedTimeSeconds => elapsedTimeSeconds * LightspeedDripRate, () => Task.Delay( 60 * 1000 ), 20 )
 		{
 		}
-
 
 		public async Task< TResult > ExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
 		{
