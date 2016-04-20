@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using lightspeedAccess.Models;
 
 namespace LightspeedAccess.Misc
 {
@@ -66,7 +67,7 @@ namespace LightspeedAccess.Misc
 				}
 				if ( shouldWait )
 				{
-					LightspeedLogger.Log.Warn( "Throttler: waiting before next retry..." );
+					LightspeedLogger.Log.Debug( "Throttler: waiting before next retry..." );
 					await this._delay();
 				}
 					
@@ -78,7 +79,7 @@ namespace LightspeedAccess.Misc
 			await this.WaitIfNeededAsync();
 			var result = await funcToThrottle();
 			LightspeedLogger.Log.Debug( "Throttler: request executed successfully" );
-			this.SubtractQuota();
+			this.SubtractQuota( result );
 			return result;
 		}
 
@@ -114,14 +115,25 @@ namespace LightspeedAccess.Misc
 			await this._delay();
 		}
 
-		private async void SubtractQuota()
+		private async void SubtractQuota< TResult >( TResult result )
 		{
 			await this.semaphore.WaitAsync();
 			try
 			{
-				this._remainingQuota--;
-				if ( this._remainingQuota < 0 )
-					this._remainingQuota = 0;
+				ResponseLeakyBucketMetadata bucketMetadata;
+				LightspeedLogger.Log.Debug( "Throttler: trying to get leaky bucket metadata from response" );
+				if ( QuotaParser.TryParseQuota( result, out bucketMetadata ) )
+				{
+					LightspeedLogger.Log.Debug( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed );
+					this._remainingQuota = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
+				}
+				else
+				{
+					LightspeedLogger.Log.Debug( "Throttler: cannot parse leaky bucket metadata from response, using built-in quota calculation instead" );
+					this._remainingQuota--;
+					if ( this._remainingQuota < 0 )
+						this._remainingQuota = 0;
+				}
 			}
 			finally
 			{
