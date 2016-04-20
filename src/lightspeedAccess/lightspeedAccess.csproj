@@ -56,10 +56,11 @@
     <Compile Include="Misc\ThrottlerAsync.cs" />
     <Compile Include="Models\Account\LightspeedAccountInfo.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
+    <Compile Include="Misc\QuotaParser.cs" />
     <Compile Include="Models\Request\GetAccountRequest.cs" />
     <Compile Include="Models\Request\GetShopRequest.cs" />
     <Compile Include="Models\Request\UpdateOnHandQuantityRequest.cs" />
-    <Compile Include="Models\ResponseWithLeakyBucketMetadata.cs" />
+    <Compile Include="Models\Common\ResponseWithLeakyBucketMetadata.cs" />
     <Compile Include="Models\ShippingInfo\Contact.cs" />
     <Compile Include="Models\ShippingInfo\LightspeedAddress.cs" />
     <Compile Include="Models\Common\LightspeedMoneyType.cs" />

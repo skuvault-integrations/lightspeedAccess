@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
+using lightspeedAccess.Models;
+using lightspeedAccess.Models.Common;
 
-namespace lightspeedAccess.Models
+namespace lightspeedAccess.Misc
 {
-	class ResponseLeakyBucketMetadata
-	{
-		public int quotaSize;
-		public int quotaUsed;
-	}
-
 	static class QuotaParser
 	{
 		public static bool TryParseQuota< T >( T body, out ResponseLeakyBucketMetadata metadata )
