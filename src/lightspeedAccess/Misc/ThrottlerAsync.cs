@@ -13,6 +13,7 @@ namespace LightspeedAccess.Misc
 	{
 		private readonly int _maxQuota;
 		private int _remainingQuota;
+		private QuotaCalculationType _calculationType = QuotaCalculationType.FromServer; 
 		private readonly Func< int, int > _releasedQuotaCalculator;
 		private readonly Func< Task > _delay;
 		private readonly int _maxRetryCount;
@@ -101,7 +102,7 @@ namespace LightspeedAccess.Misc
 			await this.semaphore.WaitAsync();
 			try
 			{
-				this.UpdateRequestQuoteFromTimer();
+				if( this._calculationType == QuotaCalculationType.Manual ) this.UpdateRequestQuoteFromTimer();
 
 				if ( this._remainingQuota != 0 )
 				{
@@ -128,6 +129,7 @@ namespace LightspeedAccess.Misc
 				{
 					LightspeedLogger.Log.Debug( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed );
 					this._remainingQuota = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
+					this._calculationType = QuotaCalculationType.FromServer;
 				}
 				else
 				{
@@ -135,6 +137,7 @@ namespace LightspeedAccess.Misc
 					this._remainingQuota--;
 					if ( this._remainingQuota < 0 )
 						this._remainingQuota = 0;
+					this._calculationType = QuotaCalculationType.Manual;
 				}
 			}
 			finally
