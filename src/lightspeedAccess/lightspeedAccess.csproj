@@ -49,12 +49,16 @@
     <Compile Include="LightspeedAuthService.cs" />
     <Compile Include="LightspeedFactory.cs" />
     <Compile Include="ILightspeedOrdersService.cs" />
+    <Compile Include="Misc\LightspeedGlobalThrottlingInfo.cs" />
     <Compile Include="LightspeedOrdersService.cs" />
     <Compile Include="LightspeedShopService.cs" />
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\LightspeedLogger.cs" />
+    <Compile Include="Misc\LightspeedThrottlingDefaults.cs" />
     <Compile Include="Misc\QuotaCalculationType.cs" />
     <Compile Include="Misc\ThrottlerAsync.cs" />
+    <Compile Include="Misc\ThrottlerConfig.cs" />
+    <Compile Include="Misc\ThrottlerConfigBuilder.cs" />
     <Compile Include="Models\Account\LightspeedAccountInfo.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Misc\QuotaParser.cs" />

@@ -73,19 +73,25 @@ namespace lightspeedAccessTests.Orders
 		}
 
 		[Test]
-		public void OrderServiceThrottlerTestAsync()
+		public void MultipleServicesThrottlerTestAsync()
 		{
 			var service = _factory.CreateOrdersService( _config );
-
+			var invService = _factory.CreateShopsService( _config );
 			var endDate = DateTime.Now;
 			var startDate = endDate.AddMonths( -6 );
 
 			var cSource = new CancellationTokenSource();
 
+			var tasks = new List< Task >();
 			for ( int i = 0; i < 120; i++ )
 			{
-				service.GetOrdersAsync( startDate, endDate, cSource.Token ).Wait();
+				var ordersTask = service.GetOrdersAsync( startDate, endDate, cSource.Token );
+				var itemsTask = invService.GetItems( 1, cSource.Token );
+				tasks.Add( ordersTask );
+				tasks.Add( itemsTask );
 			}
+
+			Task.WaitAll( tasks.ToArray() );
 			
 			Assert.Greater( 5, 0 );
 		}

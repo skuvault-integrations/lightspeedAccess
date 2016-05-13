@@ -12,7 +12,7 @@ namespace LightspeedAccess.Misc
 	public sealed class ThrottlerAsync
 	{
 		private readonly int _maxQuota;
-		private int _remainingQuota;
+		private readonly long _accountId;
 		private QuotaCalculationType _calculationType = QuotaCalculationType.FromServer; 
 		private readonly Func< int, int > _releasedQuotaCalculator;
 		private readonly Func< Task > _delay;
@@ -20,25 +20,18 @@ namespace LightspeedAccess.Misc
 
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim( 1 );
 
-		//TODO: Update delayInSeconds to milliseconds or change type to decimal
-		public ThrottlerAsync( int maxQuota, int delayInSeconds ):
-			this( maxQuota, el => el / delayInSeconds, () => Task.Delay( delayInSeconds * 1000 ), 10 )
+		public ThrottlerAsync( ThrottlerConfig config )
 		{
+			this._maxQuota = config._maxQuota;
+			this._releasedQuotaCalculator = config._releasedQuotaCalculator;
+			this._delay = config._delay;
+			this._maxRetryCount = config._maxRetryCount;
+			this._accountId = config._accountId;
 		}
 
-		public ThrottlerAsync( int maxQuota, Func< int, int > releasedQuotaCalculator, Func< Task > delay, int maxRetryCount )
-		{
-			this._maxQuota = this._remainingQuota = maxQuota;
-			this._releasedQuotaCalculator = releasedQuotaCalculator;
-			this._delay = delay;
-			this._maxRetryCount = maxRetryCount;
-		}
-
-		private const int LightspeedBucketSize = 180;
-		private const int LightspeedDripRate = 3;
 
 		// default throttler that implements Lightspeed leaky bucket
-		public ThrottlerAsync(): this( LightspeedBucketSize, elapsedTimeSeconds => elapsedTimeSeconds * LightspeedDripRate, () => Task.Delay( 60 * 1000 ), 20 )
+		public ThrottlerAsync( long accountId ): this( ThrottlerConfig.CreateDefault( accountId ) )
 		{
 		}
 
@@ -62,7 +55,7 @@ namespace LightspeedAccess.Misc
 						throw new ThrottlerException( "Throttle max retry count reached", ex );
 
 					LightspeedLogger.Log.Debug( "Throttler: got throttling exception. Retrying..." );
-					this._remainingQuota = 0;
+					this.SetRemainingQuota( 0 );
 					this._requestTimer.Restart();
 					shouldWait = true;
 					retryCount++;
@@ -97,6 +90,19 @@ namespace LightspeedAccess.Misc
 			return webException.Response is HttpWebResponse && ( ( HttpWebResponse )webException.Response ).StatusCode == ( HttpStatusCode )429;
 		}
 
+		private int GetRemainingQuota()
+		{
+			int remainingQuota;
+			if( !LightspeedGlobalThrottlingInfo.GetThrottlingInfo( this._accountId, out remainingQuota ) )
+				remainingQuota = this._maxQuota;
+			return remainingQuota;
+		}
+
+		private void SetRemainingQuota( int quota )
+		{
+			LightspeedGlobalThrottlingInfo.AddThrottlingInfo( this._accountId, quota );
+		}
+
 		private async Task WaitIfNeededAsync()
 		{
 			await this.semaphore.WaitAsync();
@@ -104,10 +110,8 @@ namespace LightspeedAccess.Misc
 			{
 				if( this._calculationType == QuotaCalculationType.Manual ) this.UpdateRequestQuoteFromTimer();
 
-				if ( this._remainingQuota != 0 )
-				{
+				if ( this.GetRemainingQuota() != 0 )
 					return;
-				}
 			}
 			finally
 			{
@@ -128,15 +132,17 @@ namespace LightspeedAccess.Misc
 				if ( QuotaParser.TryParseQuota( result, out bucketMetadata ) )
 				{
 					LightspeedLogger.Log.Debug( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed );
-					this._remainingQuota = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
+					this.SetRemainingQuota( bucketMetadata.quotaSize - bucketMetadata.quotaUsed );
 					this._calculationType = QuotaCalculationType.FromServer;
 				}
 				else
 				{
 					LightspeedLogger.Log.Debug( "Throttler: cannot parse leaky bucket metadata from response, using built-in quota calculation instead" );
-					this._remainingQuota--;
-					if ( this._remainingQuota < 0 )
-						this._remainingQuota = 0;
+					int remainingQuota = this.GetRemainingQuota();
+					remainingQuota--;
+					if ( remainingQuota < 0 )
+						remainingQuota = 0;
+					this.SetRemainingQuota( remainingQuota );
 					this._calculationType = QuotaCalculationType.Manual;
 				}
 			}
@@ -146,12 +152,12 @@ namespace LightspeedAccess.Misc
 			}
 
 			this._requestTimer.Start();
-			LightspeedLogger.Log.Debug( "Throttler: substracted quota, now available {0}", this._remainingQuota );
+			LightspeedLogger.Log.Debug( "Throttler: substracted quota, now available {0}", this.GetRemainingQuota() );
 		}
 
 		private void UpdateRequestQuoteFromTimer()
 		{
-			if( !this._requestTimer.IsRunning || this._remainingQuota == this._maxQuota )
+			if( !this._requestTimer.IsRunning || this.GetRemainingQuota() == this._maxQuota )
 				return;
 
 			var totalSeconds = this._requestTimer.Elapsed.TotalSeconds;
@@ -164,8 +170,11 @@ namespace LightspeedAccess.Misc
 			if( quotaReleased == 0 )
 				return;
 
-			this._remainingQuota = Math.Min( this._remainingQuota + quotaReleased, this._maxQuota );
-			LightspeedLogger.Log.Debug( "Throttler: added quota, now available {0}", this._remainingQuota );
+			int remainingQuota = this.GetRemainingQuota();
+
+			remainingQuota = Math.Min( remainingQuota + quotaReleased, this._maxQuota );
+			this.SetRemainingQuota( remainingQuota );
+			LightspeedLogger.Log.Debug( "Throttler: added quota, now available {0}", remainingQuota );
 
 			this._requestTimer.Reset();
 		}
