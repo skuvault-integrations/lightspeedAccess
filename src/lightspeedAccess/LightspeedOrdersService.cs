@@ -23,7 +23,7 @@ namespace LightspeedAccess
 		public LightspeedOrdersService( LightspeedConfig config )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedOrdersService with config {0}", config.ToString() );
-			this.throttler = new ThrottlerAsync();
+			this.throttler = new ThrottlerAsync( config.AccountId );
 			this._webRequestServices = new WebRequestService( config, this.throttler );
 		}
 

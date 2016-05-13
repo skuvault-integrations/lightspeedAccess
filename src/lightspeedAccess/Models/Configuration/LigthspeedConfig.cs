@@ -13,6 +13,8 @@ namespace LightspeedAccess.Models.Configuration
 		public string Username{ get; private set; }
 		public string Password{ get; private set; }
 
+		public int AccountId{ get; private set; }
+
 		public string LightspeedAuthToken{ get; private set; }
 
 		public static int DefaultTimeoutSeconds = 10;
@@ -34,6 +36,7 @@ namespace LightspeedAccess.Models.Configuration
 
 		public LightspeedConfig( int accountId, string authToken )
 		{
+			AccountId = accountId;
 			Endpoint = string.Format( "{0}/{1}/", path, accountId );
 			LightspeedAuthToken = authToken;
 			TimeoutSeconds = DefaultTimeoutSeconds;

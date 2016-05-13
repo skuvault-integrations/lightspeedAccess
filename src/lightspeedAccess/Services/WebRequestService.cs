@@ -242,7 +242,7 @@ namespace LightspeedAccess.Services
 			{
 				try
 				{
-					var response = await ActionPolicies.SubmitAsync.Get( () => this._throttler.ExecuteAsync( request.GetResponseAsync ) );
+					var response = await ActionPolicies.SubmitAsync.Get( () => ( this._throttler != null ) ? this._throttler.ExecuteAsync( request.GetResponseAsync ) : request.GetResponseAsync() );
 					ct.ThrowIfCancellationRequested();
 					return ( HttpWebResponse )response;
 				}
