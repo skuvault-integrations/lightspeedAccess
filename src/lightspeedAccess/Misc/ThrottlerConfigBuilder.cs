@@ -6,7 +6,6 @@ namespace lightspeedAccess.Misc
 	class ThrottlerConfigBuilder
 	{
 		private int _maxQuota;
-		private Func<int, int> _releasedQuotaCalculator;
 		private Func<Task> _delay;
 		private int _maxRetryCount;
 		private readonly long _accountId;				
@@ -28,12 +27,6 @@ namespace lightspeedAccess.Misc
 			return this;
 		}
 
-		public ThrottlerConfigBuilder SetReleasedQuotaCalculator( Func<int, int> releasedQuotaCalculator )
-		{
-			this._releasedQuotaCalculator = releasedQuotaCalculator;
-			return this;
-		}
-
 		public ThrottlerConfigBuilder SetDelayFunc( Func<Task> delay )
 		{
 			this._delay = delay;
@@ -48,7 +41,7 @@ namespace lightspeedAccess.Misc
 
 		public ThrottlerConfig Build()
 		{
-			return new ThrottlerConfig( this._maxQuota, this._maxRetryCount, this._delay, this._releasedQuotaCalculator, this._accountId );
+			return new ThrottlerConfig( this._maxQuota, this._maxRetryCount, this._delay, this._accountId );
 		}
 	}
 }

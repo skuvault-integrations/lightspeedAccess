@@ -5,19 +5,18 @@ namespace lightspeedAccess.Misc
 {
 	internal static class LightspeedGlobalThrottlingInfo
 	{
-		
-		private static readonly ConcurrentDictionary< long, int > _throttlingInfo = new ConcurrentDictionary< long, int >();
-		private static readonly ConcurrentDictionary< long, SemaphoreSlim > semaphoreQuota = new ConcurrentDictionary< long, SemaphoreSlim >();
+		private const int MaxParallelRequestsForSingleAccount = 20;
 
-		public static readonly SemaphoreSlim GlobalThrottlerSwitch = new SemaphoreSlim( 1 );
+		private static readonly ConcurrentDictionary< long, int > _throttlingInfo = new ConcurrentDictionary< long, int >();
+		private static readonly ConcurrentDictionary< long, SemaphoreSlim > _semaphoreQuota = new ConcurrentDictionary< long, SemaphoreSlim >();
 
 		public static SemaphoreSlim GetSemaphoreSync( long accountId )
 		{
-			if( semaphoreQuota.ContainsKey( accountId ) )
-				return semaphoreQuota[ accountId ];
-			var x = new SemaphoreSlim( 10 );
-			semaphoreQuota[ accountId ] = x;
-			return x;
+			if( _semaphoreQuota.ContainsKey( accountId ) )
+				return _semaphoreQuota[ accountId ];
+			var newSemaphore = new SemaphoreSlim( MaxParallelRequestsForSingleAccount );
+			_semaphoreQuota[ accountId ] = newSemaphore;
+			return newSemaphore;
 		}
 
 		public static void AddThrottlingInfo( long accountId, int remainingQuota )

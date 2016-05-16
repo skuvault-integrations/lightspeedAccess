@@ -73,6 +73,25 @@ namespace lightspeedAccessTests.Orders
 		}
 
 		[Test]
+		public void SingleServiceThrottlerTestAsync()
+		{
+			var service = _factory.CreateOrdersService( _config );
+			var endDate = DateTime.Now;
+			var startDate = endDate.AddMonths( -6 );
+
+			var cSource = new CancellationTokenSource();
+
+			for ( int i = 0; i < 200; i++ )
+			{
+				var ordersTask = service.GetOrdersAsync( startDate, endDate, cSource.Token );
+				ordersTask.Wait( cSource.Token );
+			}
+
+
+			Assert.Greater( 5, 0 );
+		}
+
+		[Test]
 		public void MultipleServicesThrottlerTestAsync()
 		{
 			var service = _factory.CreateOrdersService( _config );
