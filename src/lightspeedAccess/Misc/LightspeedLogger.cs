@@ -13,7 +13,7 @@ namespace LightspeedAccess.Misc
 
 		static LightspeedLogger()
 		{
-			Log = new ConsoleLogger();  //NetcoLogger.GetLogger( "LightspeedLogger" );
+			Log = NetcoLogger.GetLogger( "LightspeedLogger" ); //new ConsoleLogger();  //NetcoLogger.GetLogger( "LightspeedLogger" );
 		}
 
 		private class ConsoleLogger : ILogger 

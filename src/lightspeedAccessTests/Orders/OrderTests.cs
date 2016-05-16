@@ -83,7 +83,7 @@ namespace lightspeedAccessTests.Orders
 			var cSource = new CancellationTokenSource();
 
 			var tasks = new List< Task >();
-			for ( int i = 0; i < 120; i++ )
+			for ( int i = 0; i < 240; i++ )
 			{
 				var ordersTask = service.GetOrdersAsync( startDate, endDate, cSource.Token );
 				var itemsTask = invService.GetItems( 1, cSource.Token );
