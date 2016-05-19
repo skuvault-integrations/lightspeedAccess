@@ -32,7 +32,9 @@ namespace LightspeedAccess.Misc
 		}
 
 		public async Task< TResult > ExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
-		{			var retryCount = 0;
+		{	
+			// TODO rewrite this loop using RetryPolicy
+			var retryCount = 0;
 			while( true )
 			{
 				var shouldWait = false;
