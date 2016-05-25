@@ -55,7 +55,6 @@
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\LightspeedLogger.cs" />
     <Compile Include="Misc\LightspeedThrottlingDefaults.cs" />
-    <Compile Include="Misc\QuotaCalculationType.cs" />
     <Compile Include="Misc\ThrottlerAsync.cs" />
     <Compile Include="Misc\ThrottlerConfig.cs" />
     <Compile Include="Misc\ThrottlerConfigBuilder.cs" />
