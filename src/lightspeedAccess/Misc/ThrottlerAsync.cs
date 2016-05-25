@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using lightspeedAccess.Misc;
 using lightspeedAccess.Models;
 using lightspeedAccess.Models.Common;
+using Netco.ActionPolicyServices;
 
 namespace LightspeedAccess.Misc
 {
@@ -14,9 +15,11 @@ namespace LightspeedAccess.Misc
 		private readonly int _maxQuota;
 		private readonly long _accountId;
 		private readonly Func< Task > _delay;
+		private readonly Func<Task> _delayOnThrottlingException;
 		private readonly int _maxRetryCount;
+		private readonly int _requestCost;
 
-		private const int QuotaThreshold = 20;
+		private const int QuotaThreshold = 30;
 
 		public ThrottlerAsync( ThrottlerConfig config )
 		{
@@ -24,6 +27,19 @@ namespace LightspeedAccess.Misc
 			this._delay = config._delay;
 			this._maxRetryCount = config._maxRetryCount;
 			this._accountId = config._accountId;
+			this._requestCost = config._requestCost;
+			this._delayOnThrottlingException = config._delayOnThrottlingException;
+
+			this._throttlerActionPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( this._maxRetryCount, async ( ex, i ) => {
+				if ( !this.IsExceptionFromThrottling( ex ) )
+				{
+					LightspeedLogger.Log.Warn( "Throttler: faced non-throttling exception: {0}", ex.Message );
+					throw ex;
+				}
+				LightspeedLogger.Log.Warn( "Throttler: got throttling exception. Retrying..." );
+				await this._delayOnThrottlingException();
+			})
+			;
 		}
 
 		// default throttler that implements Lightspeed leaky bucket
@@ -31,37 +47,11 @@ namespace LightspeedAccess.Misc
 		{
 		}
 
+		private readonly ActionPolicyAsync _throttlerActionPolicy; 
+ 
 		public async Task< TResult > ExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
-		{	
-			// TODO rewrite this loop using RetryPolicy
-			var retryCount = 0;
-			while( true )
-			{
-				var shouldWait = false;
-				try
-				{
-					LightspeedLogger.Log.Debug( "Throttler: trying execute request for the {0} time", retryCount );
-					return await this.TryExecuteAsync( funcToThrottle );
-				}
-				catch( Exception ex )
-				{
-					if( !this.IsExceptionFromThrottling( ex ) )
-						throw;
-					
-					if( retryCount >= this._maxRetryCount )
-						throw new ThrottlerException( "Throttle max retry count reached", ex );
-
-					LightspeedLogger.Log.Debug( "Throttler: got throttling exception. Retrying..." );
-					shouldWait = true;
-					retryCount++;
-					// try again through loop
-				}
-				
-				if ( shouldWait )
-				{
-					await this._delay();
-				}					
-			}
+		{
+			return await this._throttlerActionPolicy.Get( () => this.TryExecuteAsync( funcToThrottle ) );
 		}
 
 		private async Task< TResult > TryExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
@@ -75,7 +65,7 @@ namespace LightspeedAccess.Misc
 			try
 			{
 				result = await funcToThrottle();
-				LightspeedLogger.Log.Debug( "Throttler: request executed successfully" );
+				LightspeedLogger.Log.Warn( "Throttler: request executed successfully" );
 				this.SubtractQuota( result );
 			}
 			finally
@@ -113,30 +103,31 @@ namespace LightspeedAccess.Misc
 		private async Task WaitIfNeededAsync()
 		{
 			var remainingQuota = this.GetRemainingQuota();
-			LightspeedLogger.Log.Debug( "Current quota for account {0} is: {1}", this._accountId, remainingQuota );
+			LightspeedLogger.Log.Warn( "Current quota for account {0} is: {1}", this._accountId, remainingQuota );
 			if( remainingQuota > QuotaThreshold )
 			{
-				remainingQuota--;
-				this.SetRemainingQuota( remainingQuota );
+				remainingQuota = remainingQuota - this._requestCost;
+				this.SetRemainingQuota( remainingQuota > 0 ? remainingQuota : 0 );
 				return;
 			}
 
-			LightspeedLogger.Log.Debug( "Throttler: quota exceeded. Waiting..." );
+			LightspeedLogger.Log.Warn( "Throttler: quota exceeded. Waiting..." );
 			await this._delay();
-			LightspeedLogger.Log.Debug( "Throttler: Resuming..." );			
+			LightspeedLogger.Log.Warn( "Throttler: Resuming..." );			
 		}
 
 		private void SubtractQuota< TResult >( TResult result )
 		{
 			ResponseLeakyBucketMetadata bucketMetadata;
-			LightspeedLogger.Log.Debug( "Throttler: trying to get leaky bucket metadata from response" );
+			LightspeedLogger.Log.Warn( "Throttler: trying to get leaky bucket metadata from response" );
 			if( QuotaParser.TryParseQuota( result, out bucketMetadata ) )
 			{
-				LightspeedLogger.Log.Debug( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed );
-				this.SetRemainingQuota( bucketMetadata.quotaSize - bucketMetadata.quotaUsed );
+				LightspeedLogger.Log.Warn( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed );
+				var quotaDelta = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
+				this.SetRemainingQuota( quotaDelta > 0 ? quotaDelta : 0 );
 			}
 
-			LightspeedLogger.Log.Debug( "Throttler: substracted quota, now available {0}", this.GetRemainingQuota() );
+			LightspeedLogger.Log.Warn( "Throttler: substracted quota, now available {0}", this.GetRemainingQuota() );
 		}
 
 		public class ThrottlerException: Exception

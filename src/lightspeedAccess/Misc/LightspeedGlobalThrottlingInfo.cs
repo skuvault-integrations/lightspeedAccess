@@ -5,7 +5,7 @@ namespace lightspeedAccess.Misc
 {
 	internal static class LightspeedGlobalThrottlingInfo
 	{
-		private const int MaxParallelRequestsForSingleAccount = 20;
+		private const int MaxParallelRequestsForSingleAccount = 10;
 
 		private static readonly ConcurrentDictionary< long, int > _throttlingInfo = new ConcurrentDictionary< long, int >();
 		private static readonly ConcurrentDictionary< long, SemaphoreSlim > _semaphoreQuota = new ConcurrentDictionary< long, SemaphoreSlim >();

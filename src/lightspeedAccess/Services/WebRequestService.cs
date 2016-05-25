@@ -95,11 +95,24 @@ namespace LightspeedAccess.Services
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
-			var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
-			ManageRequestBody( request, ref webRequest );
+			var webRequestAction = new Func< Task< WebResponse > >(
+				async () =>
+				{
+					var requestDelegate = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
+					ManageRequestBody( request, ref requestDelegate );
+					try
+					{
+						return await requestDelegate.GetResponseAsync();
+					}
+					catch ( WebException ex )
+					{
+						LogRequestFailure( ex, requestDelegate );
+						throw;
+					}					
+				}
+				);
 
-
-			using ( var response = await ( this.GetWrappedAsyncResponse( webRequest, ctx ) ) )
+			using ( var response = await ( this.GetWrappedAsyncResponse( webRequestAction, ctx ) ) )
 			{
 				var stream = response.GetResponseStream();
 
@@ -236,24 +249,20 @@ namespace LightspeedAccess.Services
 			}
 		}
 
-		private async Task< HttpWebResponse > GetWrappedAsyncResponse( HttpWebRequest request, CancellationToken ct )
+		private async Task< HttpWebResponse > GetWrappedAsyncResponse( Func< Task< WebResponse > > action, CancellationToken ct )
 		{
-			using( ct.Register( request.Abort ) )
+			try
 			{
-				try
-				{
-					var response = await ActionPolicies.SubmitAsync.Get( () => ( this._throttler != null ) ? this._throttler.ExecuteAsync( request.GetResponseAsync ) : request.GetResponseAsync() );
-					ct.ThrowIfCancellationRequested();
-					return ( HttpWebResponse )response;
-				}
-				catch( WebException ex )
-				{
-					LogRequestFailure( ex, request );
-					if( ct.IsCancellationRequested )
-						throw new OperationCanceledException( ex.Message, ex, ct );
+				var response = await ActionPolicies.SubmitAsync.Get( () => this._throttler != null ? this._throttler.ExecuteAsync( action ) : action.Invoke() );
+				ct.ThrowIfCancellationRequested();
+				return ( HttpWebResponse )response;
+			}
+			catch( WebException ex )
+			{
+				if( ct.IsCancellationRequested )
+					throw new OperationCanceledException( ex.Message, ex, ct );
 
-					throw;
-				}
+				throw;
 			}
 		}
 	}

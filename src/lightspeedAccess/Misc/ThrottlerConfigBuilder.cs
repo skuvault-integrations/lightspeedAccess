@@ -8,7 +8,9 @@ namespace lightspeedAccess.Misc
 		private int _maxQuota;
 		private Func<Task> _delay;
 		private int _maxRetryCount;
-		private readonly long _accountId;				
+		private readonly long _accountId;
+		private int _requestCost;
+		public Func<Task> _delayOnThrottlingException;
 
 		public ThrottlerConfigBuilder( long accountId)
 		{
@@ -27,7 +29,7 @@ namespace lightspeedAccess.Misc
 			return this;
 		}
 
-		public ThrottlerConfigBuilder SetDelayFunc( Func<Task> delay )
+		public ThrottlerConfigBuilder SetDelayFunc( Func< Task > delay )
 		{
 			this._delay = delay;
 			return this;
@@ -39,9 +41,21 @@ namespace lightspeedAccess.Misc
 			return this;
 		}
 
+		public ThrottlerConfigBuilder SetRequestCost( int requestCost )
+		{
+			this._requestCost = requestCost;
+			return this;
+		}
+
+		public ThrottlerConfigBuilder SetDelayFuncOnThrottlingExceptions( Func< Task > delay )
+		{
+			this._delayOnThrottlingException = delay;
+			return this;
+		}
+
 		public ThrottlerConfig Build()
 		{
-			return new ThrottlerConfig( this._maxQuota, this._maxRetryCount, this._delay, this._accountId );
+			return new ThrottlerConfig( this._maxQuota, this._maxRetryCount, this._delay, this._accountId, this._requestCost, this._delayOnThrottlingException );
 		}
 	}
 }

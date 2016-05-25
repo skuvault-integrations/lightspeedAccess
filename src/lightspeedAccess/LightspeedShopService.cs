@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using lightspeedAccess.Misc;
 using lightspeedAccess.Models.Shop;
 using LightspeedAccess.Misc;
 using LightspeedAccess.Models.Configuration;
@@ -20,12 +21,14 @@ namespace LightspeedAccess
 	public class LightspeedShopService: ILightspeedShopService
 	{
 		private readonly WebRequestService _webRequestServices;
+		private readonly WebRequestService _webRequestServicesForUpdating;
 		private readonly LightspeedConfig _config;
 
 		public LightspeedShopService( LightspeedConfig config )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedShopsService with config {0}", config.ToString() );
 			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync( config.AccountId ) );
+			this._webRequestServicesForUpdating = new WebRequestService( config, new ThrottlerAsync( ThrottlerConfig.CreateDefaultForWriteRequests( config.AccountId ) ) );
 			this._config = config;
 		}
 
@@ -58,7 +61,7 @@ namespace LightspeedAccess
 		{
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity" );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationID, quantity );
-			this._webRequestServices.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest );
+			this._webRequestServicesForUpdating.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest );
 			LightspeedLogger.Log.Debug( "Quantity updated successfully" );
 		}
 
@@ -66,7 +69,7 @@ namespace LightspeedAccess
 		{
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity" );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
-			await this._webRequestServices.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, ctx );
+			await this._webRequestServicesForUpdating.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, ctx );
 
 			LightspeedLogger.Log.Debug( "Quantity updated successfully" );
 		}

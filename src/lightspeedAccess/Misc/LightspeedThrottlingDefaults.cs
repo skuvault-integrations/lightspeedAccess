@@ -10,5 +10,7 @@ namespace lightspeedAccess.Misc
 	{
 		public const int LightspeedBucketSize = 180;
 		public const int LightspeedDripRate = 3;
+		public const int ReadRequestCost = 1;
+		public const int WriteRequestCost = 10;
 	}
 }

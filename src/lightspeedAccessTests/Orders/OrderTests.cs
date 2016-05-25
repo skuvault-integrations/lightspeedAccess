@@ -23,15 +23,16 @@ namespace lightspeedAccessTests.Orders
 
 		private static LightspeedConfig GetConfig()
 		{
-			try {
-				using ( StreamReader sr = new StreamReader( @"D:\lightspeedCredentials.txt" ) ) 
+			try
+			{
+				using( StreamReader sr = new StreamReader( @"D:\lightspeedCredentials.txt" ) )
 				{
 					var accountId = sr.ReadLine();
 					var token = sr.ReadLine();
 					return new LightspeedConfig( Int32.Parse( accountId ), token );
 				}
 			}
-			catch ( Exception e )
+			catch( Exception e )
 			{
 				return new LightspeedConfig();
 			}
@@ -72,7 +73,7 @@ namespace lightspeedAccessTests.Orders
 			Assert.Greater( orders.Result.Count(), 0 );
 		}
 
-		[Test]
+		[ Test ]
 		public void SingleServiceThrottlerTestAsync()
 		{
 			var service = _factory.CreateOrdersService( _config );
@@ -81,17 +82,16 @@ namespace lightspeedAccessTests.Orders
 
 			var cSource = new CancellationTokenSource();
 
-			for ( int i = 0; i < 200; i++ )
+			for( int i = 0; i < 200; i++ )
 			{
 				var ordersTask = service.GetOrdersAsync( startDate, endDate, cSource.Token );
 				ordersTask.Wait( cSource.Token );
 			}
 
-
 			Assert.Greater( 5, 0 );
 		}
 
-		[Test]
+		[ Test ]
 		public void MultipleServicesThrottlerTestAsync()
 		{
 			var service = _factory.CreateOrdersService( _config );
@@ -100,18 +100,22 @@ namespace lightspeedAccessTests.Orders
 			var startDate = endDate.AddMonths( -6 );
 
 			var cSource = new CancellationTokenSource();
+			var itemsTask = invService.GetItems( 1, cSource.Token );
+			itemsTask.Wait( cSource.Token );
+			var item = itemsTask.Result.First();
 
 			var tasks = new List< Task >();
-			for ( int i = 0; i < 240; i++ )
+			for( int i = 0; i < 100; i++ )
 			{
 				var ordersTask = service.GetOrdersAsync( startDate, endDate, cSource.Token );
-				var itemsTask = invService.GetItems( 1, cSource.Token );
+				var itemUpdateTask = invService.UpdateOnHandQuantityAsync( item.ItemId, item.ItemShops[ 0 ].ShopId, item.ItemShops[ 0 ].ItemShopId, 10, cSource.Token );
+
 				tasks.Add( ordersTask );
-				tasks.Add( itemsTask );
+				tasks.Add( itemUpdateTask );
 			}
 
 			Task.WaitAll( tasks.ToArray() );
-			
+
 			Assert.Greater( 5, 0 );
 		}
 
