@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using lightspeedAccess.Misc;
+using lightspeedAccess.Models.Request;
 using lightspeedAccess.Models.Shop;
 using LightspeedAccess.Misc;
 using LightspeedAccess.Models.Configuration;
@@ -100,6 +101,14 @@ namespace LightspeedAccess
 				result = response.Item.ToList();
 			return result;			
 		} 
+
+		public async Task< bool > DoesItemExist( int itemId, CancellationToken ctx )
+		{
+			LightspeedLogger.Log.Debug( "Checking, if item {0} exists", itemId );
+			var request = new GetItemRequest( itemId );
+			var response = await this._webRequestServices.GetResponseAsync< LightspeedProduct >( request, ctx );
+			return response != null;
+		}
 
 		public async Task< IEnumerable< LightspeedProduct > > GetItemsCreatedInShopAsync( int shopId, DateTime createTimeUtc, CancellationToken ctx )
 		{

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using lightspeedAccess.Models.Request;
 using LightspeedAccess.Models.Order;
 using LightspeedAccess.Misc;
 using LightspeedAccess.Models.Configuration;
@@ -92,6 +93,20 @@ namespace LightspeedAccess.Services
 			}
 		}
 
+		private static bool IsItemNotFound( LightspeedRequest request, WebException ex )
+		{
+			if( !( request is GetItemRequest ) || ex.Status != WebExceptionStatus.ProtocolError )
+			{
+				return false;
+			}
+
+			var response = ex.Response as HttpWebResponse;
+			if( response == null )
+				return false;
+
+			return response.StatusCode == HttpStatusCode.NotFound;
+		}
+
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
@@ -107,6 +122,10 @@ namespace LightspeedAccess.Services
 					catch ( WebException ex )
 					{
 						LogRequestFailure( ex, requestDelegate );
+						if ( !IsItemNotFound( request, ex ) )
+						{
+							return null;
+						}
 						throw;
 					}					
 				}
@@ -114,6 +133,9 @@ namespace LightspeedAccess.Services
 
 			using ( var response = await ( this.GetWrappedAsyncResponse( webRequestAction, ctx ) ) )
 			{
+				if( response == null )
+					return default( T );
+
 				var stream = response.GetResponseStream();
 
 				LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );

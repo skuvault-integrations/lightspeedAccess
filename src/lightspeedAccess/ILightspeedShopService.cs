@@ -16,5 +16,6 @@ namespace LightspeedAccess
 		Task< IDictionary< string, LightspeedProduct > > GetItems( IEnumerable< string > itemSkus, CancellationToken ctx );
 		Task< IEnumerable< LightspeedProduct > > GetItems( int shopId, CancellationToken ctx );
 		Task< IEnumerable< LightspeedProduct > > GetItemsCreatedInShopAsync( int shopId, DateTime modifiedUtc, CancellationToken ctx );
+		Task< bool > DoesItemExist( int itemId, CancellationToken ctx );
 	}
 }

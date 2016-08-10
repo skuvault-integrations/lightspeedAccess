@@ -30,7 +30,8 @@ namespace LightspeedAccess.Misc
 			this._requestCost = config._requestCost;
 			this._delayOnThrottlingException = config._delayOnThrottlingException;
 
-			this._throttlerActionPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( this._maxRetryCount, async ( ex, i ) => {
+			this._throttlerActionPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( this._maxRetryCount, async ( ex, i ) =>
+			{
 				if ( !this.IsExceptionFromThrottling( ex ) )
 				{
 					LightspeedLogger.Log.Debug( "Throttler: faced non-throttling exception: {0}", ex.Message );
@@ -142,6 +143,23 @@ namespace LightspeedAccess.Misc
 			}
 
 			public ThrottlerException( string message, Exception innerException )
+				: base( message, innerException )
+			{
+			}
+		}
+
+		public class NonCriticalException: Exception
+		{
+			public NonCriticalException()
+			{
+			}
+
+			public NonCriticalException( string message )
+				: base( message )
+			{
+			}
+
+			public NonCriticalException( string message, Exception innerException )
 				: base( message, innerException )
 			{
 			}

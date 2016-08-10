@@ -62,6 +62,7 @@
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Misc\QuotaParser.cs" />
     <Compile Include="Models\Request\GetAccountRequest.cs" />
+    <Compile Include="Models\Request\GetItemRequest.cs" />
     <Compile Include="Models\Request\GetShopRequest.cs" />
     <Compile Include="Models\Request\UpdateOnHandQuantityRequest.cs" />
     <Compile Include="Models\Common\ResponseWithLeakyBucketMetadata.cs" />
