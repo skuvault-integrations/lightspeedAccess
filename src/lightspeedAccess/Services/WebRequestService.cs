@@ -122,7 +122,7 @@ namespace LightspeedAccess.Services
 					catch ( WebException ex )
 					{
 						LogRequestFailure( ex, requestDelegate );
-						if ( !IsItemNotFound( request, ex ) )
+						if ( IsItemNotFound( request, ex ) )
 						{
 							return null;
 						}
