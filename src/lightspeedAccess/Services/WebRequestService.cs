@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using lightspeedAccess.Models.Request;
@@ -263,10 +264,19 @@ namespace LightspeedAccess.Services
 					}
 					catch ( Exception )
 					{
-
 					}
 
+					var jss = new JavaScriptSerializer();
+					var responseJson = jss.Serialize( ex.Response );
+
+					var responseText = string.Empty;
+					using ( var reader = new StreamReader( ex.Response.GetResponseStream() ) )
+					{
+						responseText = reader.ReadToEnd();
+					}
+					
 					LightspeedLogger.Log.Debug( "Got {0} code response from server with message {1}. Request was: {2} with body {3}", response.StatusCode, ex.Message, requestUri, requestBody );
+					LightspeedLogger.Log.Error( "Error for request {0} with requestbody {1}. ResponseBody: {2}. ResponseHeaders: {3}", requestUri, requestBody, responseText, responseJson );
 				}
 			}
 		}
