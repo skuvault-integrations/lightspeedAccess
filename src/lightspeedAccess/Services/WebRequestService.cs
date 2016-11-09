@@ -96,7 +96,7 @@ namespace LightspeedAccess.Services
 
 		private static bool IsItemNotFound( LightspeedRequest request, WebException ex )
 		{
-			if( !( request is GetItemRequest ) || ex.Status != WebExceptionStatus.ProtocolError )
+			if( !( request is GetItemRequest || request is UpdateOnHandQuantityRequest ) || ex.Status != WebExceptionStatus.ProtocolError )
 			{
 				return false;
 			}
