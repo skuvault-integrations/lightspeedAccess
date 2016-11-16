@@ -32,7 +32,7 @@ namespace LightspeedAccess.Models.Request
 			};
 		}
 
-		public GetSalesRequest( DateTime fromDateUtc, DateTime toDateUtc, int offset = 0, int limit = 100 )
+		public GetSalesRequest( DateTime fromDateUtc, DateTime toDateUtc, int offset = 0, int limit = 50 )
 		{
 			Limit = limit;
 			Offset = offset;
