@@ -49,6 +49,7 @@
     <Compile Include="LightspeedAuthService.cs" />
     <Compile Include="LightspeedFactory.cs" />
     <Compile Include="ILightspeedOrdersService.cs" />
+    <Compile Include="Misc\ItemListExtensions.cs" />
     <Compile Include="Misc\LightspeedGlobalThrottlingInfo.cs" />
     <Compile Include="LightspeedOrdersService.cs" />
     <Compile Include="LightspeedShopService.cs" />

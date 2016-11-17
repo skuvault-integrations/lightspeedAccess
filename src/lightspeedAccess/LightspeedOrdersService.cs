@@ -11,6 +11,7 @@ using LightspeedAccess.Models.Request;
 using LightspeedAccess.Models.ShippingInfo;
 using LightspeedAccess.Models.Shop;
 using LightspeedAccess.Services;
+using static LightspeedAccess.Misc.ItemListExtensions;
 using Netco.Extensions;
 
 namespace LightspeedAccess
@@ -74,20 +75,24 @@ namespace LightspeedAccess
 		{
 			LightspeedLogger.Log.Debug( "Started getting products for orders" );
 
-			var itemIds = orders.SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ) ).ToHashSet();
+			var itemIdsFull = orders.SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ) ).ToHashSet();
 
-			var getItemsRequest = new GetItemsRequest( itemIds );
+			var itemIdsPartitioned = itemIdsFull.ToList().Partition( 100 );
 
 			var result = new List< LightspeedProduct >();
+			itemIdsPartitioned.ForEach( itemIds =>
+			{
+				var getItemsRequest = new GetItemsRequest( itemIds );
 
-			ActionPolicies.Submit.Do(
-				() =>
-				{
-					var response = this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest );
-					if( response.Item != null )
-						result = _webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest ).Item.ToList();
-				} );
-
+				ActionPolicies.Submit.Do(
+					() =>
+					{
+						var response = this._webRequestServices.GetResponse<LightspeedProductList>( getItemsRequest );
+						if ( response.Item != null )
+							result.AddRange( this._webRequestServices.GetResponse<LightspeedProductList>( getItemsRequest ).Item.ToList() );
+					} );
+			} );
+	
 			LightspeedLogger.Log.Debug( "Got {0} products for orders", result.Count );
 
 			return result;
@@ -139,17 +144,21 @@ namespace LightspeedAccess
 		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( IEnumerable< LightspeedOrder > orders, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Warn( "Started getting products for orders" );
-			var itemIds = orders.Where( s => s.SaleLines != null ).ToList().SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ).Where( id => id != 0 ) ).ToHashSet();
+			var itemIdsFull = orders.Where( s => s.SaleLines != null ).ToList().SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ).Where( id => id != 0 ) ).ToHashSet();
 
-			var result = new List< LightspeedProduct >();
-			if( itemIds.Count == 0 )
-				return result;
+			if( itemIdsFull.Count == 0 )
+				return new List< LightspeedProduct >();
 
-			var getItemsRequest = new GetItemsRequest( itemIds );
+			var itemIdsPartitioned = itemIdsFull.ToList().Partition( 100 );
 
-			var response = ( await this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx ) );
-			if( response.Item != null )
-				result = response.Item.ToList();
+			var tasks = itemIdsPartitioned.Select( itemIds =>
+			{
+				var getItemsRequest = new GetItemsRequest( itemIdsFull );
+
+				return this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx );
+			} );
+			await Task.WhenAll( tasks );
+			var result = tasks.SelectMany( t => t.Result.Item ?? new LightspeedProduct[ 0 ] ).ToList(); 
 
 			LightspeedLogger.Log.Debug( "Got {0} products for orders", result.Count );
 			return result;

@@ -15,6 +15,7 @@ using LightspeedAccess.Models.Product;
 using LightspeedAccess.Models.Request;
 using LightspeedAccess.Models.Shop;
 using LightspeedAccess.Services;
+using static LightspeedAccess.Misc.ItemListExtensions;
 using Netco.Extensions;
 
 namespace LightspeedAccess
@@ -75,22 +76,32 @@ namespace LightspeedAccess
 			LightspeedLogger.Log.Debug( "Quantity updated successfully" );
 		}
 
-		public async Task< IDictionary< string, LightspeedProduct > > GetItems( IEnumerable< string > itemSkus, CancellationToken ctx )
+		public async Task< IDictionary< string, LightspeedProduct > > GetItems( IEnumerable< string > itemSkusFull, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Debug( "Starting to get item sku index" );
-			var getItemRequest = new GetItemsRequest( itemSkus );
+			var itemSkusPartitioned = itemSkusFull.ToList().Partition( 100 );
 
-			var dictionary = new Dictionary< string, LightspeedProduct >();
+			var dictionary = new Dictionary<string, LightspeedProduct>();
 
-			var result = await this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemRequest, ctx );
-			if( result.Item != null )
+			var tasks = itemSkusPartitioned.Select( itemSkus =>
 			{
-				LightspeedLogger.Log.Debug( "Got {0} entries in item sku index", result.Item.Length );
-				result.Item.ToList().Distinct().ForEach( i =>
+				var getItemRequest = new GetItemsRequest( itemSkus );
+				return this._webRequestServices.GetResponseAsync<LightspeedProductList>( getItemRequest, ctx );
+			} );
+
+			await Task.WhenAll( tasks );
+
+			tasks.ForEach( t =>
+			{
+				if ( t.Result.Item != null )
 				{
-					dictionary[ i.Sku ] = i;
-				} );
-			}
+					LightspeedLogger.Log.Debug( "Got {0} entries in item sku index", t.Result.Item.Length );
+					t.Result.Item.ToList().Distinct().ForEach( i =>
+					{
+						dictionary[ i.Sku ] = i;
+					} );
+				}
+			} );
 			return dictionary;
 		}
 
