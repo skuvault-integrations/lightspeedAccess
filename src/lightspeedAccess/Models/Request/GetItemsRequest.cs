@@ -55,7 +55,7 @@ namespace LightspeedAccess.Models.Request
 
 		private void InitPagination()
 		{
-			Limit = 100;
+			Limit = 50;
 			Offset = 0;
 		}
 

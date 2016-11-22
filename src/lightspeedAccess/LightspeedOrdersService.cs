@@ -150,11 +150,9 @@ namespace LightspeedAccess
 				return new List< LightspeedProduct >();
 
 			var itemIdsPartitioned = itemIdsFull.ToList().Partition( 100 );
-
 			var tasks = itemIdsPartitioned.Select( itemIds =>
 			{
-				var getItemsRequest = new GetItemsRequest( itemIdsFull );
-
+				var getItemsRequest = new GetItemsRequest( itemIds );
 				return this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx );
 			} );
 			await Task.WhenAll( tasks );

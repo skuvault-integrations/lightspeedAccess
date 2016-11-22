@@ -81,7 +81,7 @@ namespace LightspeedAccess
 			LightspeedLogger.Log.Debug( "Starting to get item sku index" );
 			var itemSkusPartitioned = itemSkusFull.ToList().Partition( 100 );
 
-			var dictionary = new Dictionary<string, LightspeedProduct>();
+			var dictionary = new Dictionary< string, LightspeedProduct >();
 
 			var tasks = itemSkusPartitioned.Select( itemSkus =>
 			{
