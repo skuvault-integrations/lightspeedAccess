@@ -15,7 +15,6 @@ using LightspeedAccess.Models.Product;
 using LightspeedAccess.Models.Request;
 using LightspeedAccess.Models.Shop;
 using LightspeedAccess.Services;
-using static LightspeedAccess.Misc.ItemListExtensions;
 using Netco.Extensions;
 
 namespace LightspeedAccess
