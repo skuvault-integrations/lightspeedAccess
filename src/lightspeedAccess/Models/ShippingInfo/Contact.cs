@@ -15,4 +15,20 @@ namespace LightspeedAccess.Models.ShippingInfo
 		[ XmlElement( typeof( LightspeedEmail ) ) ]
 		public LightspeedEmail[] Emails;
 	}
+
+	[ XmlType( "Contact" ) ]
+	public class Contact2
+	{
+		[ XmlArray( "Addresses" ) ]
+		public LightspeedAddress[] Addresses{ get; set; }
+
+		[ XmlArray( "Phones" ) ]
+		public LightspeedPhone[] Phones{ get; set; }
+
+		[ XmlArray( "Emails" ) ]
+		public LightspeedEmail[] Emails{ get; set; }
+
+		[ XmlArray( "Websites" ) ]
+		public LightspeedWebsite[] Websites{ get; set; }
+	}
 }

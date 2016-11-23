@@ -24,9 +24,9 @@ namespace LightspeedAccess
 
 		public LightspeedFactory( string clientId, string clientSecret, string redirectUri )
 		{
-			LightspeedClientId = clientId;
-			LightspeedClientSecret = clientSecret;
-			LightspeedRedirectUri = redirectUri;
+			this.LightspeedClientId = clientId;
+			this.LightspeedClientSecret = clientSecret;
+			this.LightspeedRedirectUri = redirectUri;
 		}
 
 		public ILightspeedOrdersService CreateOrdersService( LightspeedConfig config )

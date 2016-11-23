@@ -13,4 +13,23 @@ namespace LightspeedAccess.Models.ShippingInfo
 		public string company{ get; set; }
 		public Contact Contact{ get; set; }
 	}
+
+	[ XmlType( "ShipTo" ) ]
+	public class ShipTo2
+	{
+		[ XmlElement( "saleID" ) ]
+		public int SaleId{ get; set; }
+
+		[ XmlElement( "firstName" ) ]
+		public string FirstName{ get; set; }
+
+		[ XmlElement( "lastName" ) ]
+		public string LastName{ get; set; }
+
+		[ XmlElement( "company" ) ]
+		public string Company{ get; set; }
+
+		[ XmlElement( "Contact" ) ]
+		public Contact2 Contact{ get; set; }
+	}
 }

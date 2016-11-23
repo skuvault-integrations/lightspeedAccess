@@ -62,8 +62,10 @@
     <Compile Include="Models\Account\LightspeedAccountInfo.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Misc\QuotaParser.cs" />
+    <Compile Include="Models\Order\LightspeedOrder2.cs" />
     <Compile Include="Models\Request\GetAccountRequest.cs" />
     <Compile Include="Models\Request\GetItemRequest.cs" />
+    <Compile Include="Models\Request\GetSalesRequest2.cs" />
     <Compile Include="Models\Request\GetShopRequest.cs" />
     <Compile Include="Models\Request\UpdateOnHandQuantityRequest.cs" />
     <Compile Include="Models\Common\ResponseWithLeakyBucketMetadata.cs" />
@@ -72,9 +74,11 @@
     <Compile Include="Models\Common\LightspeedMoneyType.cs" />
     <Compile Include="Models\Order\LightspeedOrder.cs" />
     <Compile Include="Models\Order\SaleLine.cs" />
+    <Compile Include="Models\ShippingInfo\LightspeedWebsite.cs" />
     <Compile Include="Models\ShippingInfo\LightspeedEmail.cs" />
     <Compile Include="Models\ShippingInfo\LightspeedPhone.cs" />
     <Compile Include="Models\ShippingInfo\ShipInfoList.cs" />
+    <Compile Include="Models\ShippingInfo\Customer.cs" />
     <Compile Include="Models\ShippingInfo\ShipTo.cs" />
     <Compile Include="Models\Product\LightspeedProduct.cs" />
     <Compile Include="Models\Request\GetItemsRequest.cs" />
