@@ -262,14 +262,14 @@ namespace LightspeedAccess.Services
 						var sr = new StreamReader( requestBodyStream );
 						requestBody = sr.ReadToEnd();
 					}
-					catch ( Exception )
+					catch
 					{
 					}
 
 					var jss = new JavaScriptSerializer();
 					var responseJson = jss.Serialize( ex.Response );
 
-					var responseText = string.Empty;
+					string responseText;
 					using ( var reader = new StreamReader( ex.Response.GetResponseStream() ) )
 					{
 						responseText = reader.ReadToEnd();

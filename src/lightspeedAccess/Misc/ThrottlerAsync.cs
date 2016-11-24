@@ -7,6 +7,7 @@ using lightspeedAccess.Misc;
 using lightspeedAccess.Models;
 using lightspeedAccess.Models.Common;
 using Netco.ActionPolicyServices;
+using System.IO;
 
 namespace LightspeedAccess.Misc
 {
@@ -32,9 +33,25 @@ namespace LightspeedAccess.Misc
 
 			this._throttlerActionPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( this._maxRetryCount, async ( ex, i ) =>
 			{
-				if ( !this.IsExceptionFromThrottling( ex ) )
+				if( !this.IsExceptionFromThrottling( ex ) )
 				{
 					LightspeedLogger.Log.Debug( "Throttler: faced non-throttling exception: {0}", ex.Message );
+
+					if( ex is WebException )
+					{
+						var response = ( ( WebException )ex ).Response as HttpWebResponse;
+						if( response == null )
+							throw ex;
+
+						string responseText;
+						using( var reader = new StreamReader( response.GetResponseStream() ) )
+						{
+							responseText = reader.ReadToEnd();
+						}
+
+						throw new Exception( responseText, ex );
+					}
+
 					throw ex;
 				}
 				LightspeedLogger.Log.Debug( "Throttler: got throttling exception. Retrying..." );
