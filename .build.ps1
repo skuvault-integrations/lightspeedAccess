@@ -80,7 +80,6 @@ task NuGet Package, Version, {
 			<group targetFramework="net45">
 				<dependency id="Netco" version="1.4.3" />
 				<dependency id="CuttingEdge.Conditions" version="1.2.0.0" />
-				<dependency id="NUnit" version="2.6.4" />
 			</group>
 		</dependencies>
 	</metadata>
