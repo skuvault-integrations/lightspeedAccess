@@ -8,6 +8,7 @@ using lightspeedAccess.Models;
 using lightspeedAccess.Models.Common;
 using Netco.ActionPolicyServices;
 using System.IO;
+using System.Runtime.ExceptionServices;
 
 namespace LightspeedAccess.Misc
 {
@@ -35,13 +36,15 @@ namespace LightspeedAccess.Misc
 			{
 				if( !this.IsExceptionFromThrottling( ex ) )
 				{
-					LightspeedLogger.Log.Debug( "Throttler: faced non-throttling exception: {0}", ex.Message );
+					var errMessage = string.Format( "Throttler: faced non-throttling exception: {0}", ex.Message );
+					LightspeedLogger.Log.Debug( errMessage );
 
-					if( ex is WebException )
+					var webException = ex as WebException;
+					if( webException != null )
 					{
-						var response = ( ( WebException )ex ).Response as HttpWebResponse;
+						var response = webException.Response as HttpWebResponse;
 						if( response == null )
-							throw ex;
+							throw new LightspeedException( errMessage, ex );
 
 						string responseText;
 						using( var reader = new StreamReader( response.GetResponseStream() ) )
@@ -49,10 +52,10 @@ namespace LightspeedAccess.Misc
 							responseText = reader.ReadToEnd();
 						}
 
-						throw new Exception( responseText, ex );
+						throw new LightspeedException( responseText, ex );
 					}
 
-					throw ex;
+					throw new LightspeedException( errMessage, ex);
 				}
 				LightspeedLogger.Log.Debug( "Throttler: got throttling exception. Retrying..." );
 				await this._delayOnThrottlingException();
@@ -69,7 +72,15 @@ namespace LightspeedAccess.Misc
  
 		public async Task< TResult > ExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
 		{
-			return await this._throttlerActionPolicy.Get( () => this.TryExecuteAsync( funcToThrottle ) );
+			try
+			{
+				return await this._throttlerActionPolicy.Get( () => this.TryExecuteAsync( funcToThrottle ) );
+			}
+			catch( AggregateException ex )
+			{
+				ExceptionDispatchInfo.Capture( ex.InnerException ).Throw();
+				throw;
+			}
 		}
 
 		private async Task< TResult > TryExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
