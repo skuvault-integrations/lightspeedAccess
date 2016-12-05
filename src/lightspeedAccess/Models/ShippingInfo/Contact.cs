@@ -4,20 +4,8 @@ using LightspeedAccess.Models.Order;
 
 namespace LightspeedAccess.Models.ShippingInfo
 {
-	public class Contact
-	{
-		[ XmlElement( typeof( LightspeedAddress ) ) ]
-		public LightspeedAddress[] Addresses;
-
-		[ XmlElement( typeof( LightspeedPhone ) ) ]
-		public LightspeedPhone[] Phones;
-
-		[ XmlElement( typeof( LightspeedEmail ) ) ]
-		public LightspeedEmail[] Emails;
-	}
-
 	[ XmlType( "Contact" ) ]
-	public class Contact2
+	public class Contact
 	{
 		[ XmlArray( "Addresses" ) ]
 		public LightspeedAddress[] Addresses{ get; set; }

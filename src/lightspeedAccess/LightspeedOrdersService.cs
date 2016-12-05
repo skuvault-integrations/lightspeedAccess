@@ -49,7 +49,6 @@ namespace LightspeedAccess
 
 			var shopsNames = this.GetShopNames();
 			var items = this.GetItems( rawOrders );
-			var shipInfos = this.GetShipInfo( rawOrders );
 
 			LightspeedLogger.Log.Debug( "Adding shop info, sale lines and ship info to raw orders..." );
 			rawOrders.ForEach( o =>
@@ -57,9 +56,6 @@ namespace LightspeedAccess
 				o.SaleLines.ForEach( s =>
 					o.Products.Add( items.ToList().Find( i => i.ItemId == s.ItemId ) )
 					);
-
-				if( shipInfos.ContainsKey( o.SaleId ) )
-					o.ShipTo = shipInfos.GetValue( o.SaleId );
 
 				if( shopsNames.ContainsKey( o.ShopId ) )
 					o.ShopName = shopsNames.GetValue( o.ShopId );
@@ -70,56 +66,7 @@ namespace LightspeedAccess
 			return rawOrders;
 		}
 
-		#region SI-534
-
-		public IEnumerable< LightspeedOrder2 > GetOrders2( DateTime dateFrom, DateTime dateTo )
-		{
-			LightspeedLogger.Log.Debug( "Started getting orders from lightspeed from {0} to {1}", dateFrom, dateTo );
-
-			var getSalesRequest = new GetSalesRequest2( dateFrom, dateTo );
-
-			var rawOrders = new List< LightspeedOrder2 >();
-
-			ActionPolicies.Submit.Do( () =>
-			{
-				var response = this._webRequestServices.GetResponse< OrderList2 >( getSalesRequest );
-				if ( response.Sale != null )
-					rawOrders = response.Sale.Where( s => s.SaleLines != null ).ToList();
-			} );
-
-			if ( rawOrders.Count == 0 )
-				return rawOrders;
-
-			LightspeedLogger.Log.Debug( "Got {0} raw orders", rawOrders.Count );
-
-			var shopsNames = this.GetShopNames();
-			var items = this.GetItems( rawOrders );
-
-			LightspeedLogger.Log.Debug( "Adding shop info, sale lines and ship info to raw orders..." );
-			rawOrders.ForEach( o =>
-			{
-				o.SaleLines.ForEach( s =>
-					o.Products.Add( items.ToList().Find( i => i.ItemId == s.ItemId ) )
-					);
-
-				if ( shopsNames.ContainsKey( o.ShopId ) )
-					o.ShopName = shopsNames.GetValue( o.ShopId );
-			} );
-
-			LightspeedLogger.Log.Debug( "Retrieving orders completed" );
-
-			return rawOrders;
-		}
-
-		#endregion
-
 		private IEnumerable< LightspeedProduct > GetItems( IEnumerable< LightspeedOrder > orders )
-		{
-			var itemIdsFull = orders.SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ) ).ToHashSet();
-			return this.GetItems( itemIdsFull );
-		}
-
-		private IEnumerable< LightspeedProduct > GetItems( IEnumerable< LightspeedOrder2 > orders )
 		{
 			var itemIdsFull = orders.SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ) ).ToHashSet();
 			return this.GetItems( itemIdsFull );
@@ -199,12 +146,6 @@ namespace LightspeedAccess
 			return this.GetItemsAsync( itemIdsFull, ctx );
 		}
 
-		private Task< IEnumerable< LightspeedProduct > > GetItemsAsync( IEnumerable< LightspeedOrder2 > orders, CancellationToken ctx )
-		{
-			var itemIdsFull = orders.Where( s => s.SaleLines != null ).ToList().SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ).Where( id => id != 0 ) ).ToHashSet();
-			return this.GetItemsAsync( itemIdsFull, ctx );
-		}
-
 		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( HashSet< int > itemIdsFull, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Warn( "Started getting products for orders" );
@@ -250,54 +191,7 @@ namespace LightspeedAccess
 			var rawOrders = new List< LightspeedOrder >();
 
 			var response =
-				( await this._webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx ) );
-			if( response.Sale != null )
-				rawOrders = response.Sale.ToList();
-
-			if( rawOrders.Count == 0 )
-				return rawOrders;
-
-			LightspeedLogger.Log.Debug( "Got {0} raw orders", rawOrders.Count );
-
-			var items = await this.GetItemsAsync( rawOrders, ctx );
-			var shipInfos = await this.GetShipInfoAsync( rawOrders, ctx );
-			var shopsNames = await this.GetShopNamesAsync( ctx );
-
-			LightspeedLogger.Log.Debug( "Adding shop info, sale lines and ship info to raw orders..." );
-			rawOrders.ForEach( o =>
-			{
-				if( o.SaleLines != null && items.Count() != 0 )
-				{
-					o.SaleLines.ForEach( s =>
-					{
-						var item = items.ToList().Find( i => i.ItemId == s.ItemId );
-						if( item != null )
-							o.Products.Add( item );
-					} );
-				}
-
-				if( shipInfos.ContainsKey( o.SaleId ) )
-					o.ShipTo = shipInfos.GetValue( o.SaleId );
-
-				if( shopsNames.ContainsKey( o.ShopId ) )
-					o.ShopName = shopsNames.GetValue( o.ShopId );
-			} );
-
-			LightspeedLogger.Log.Debug( "Retrieving orders completed" );
-			return rawOrders;
-		}
-
-		#region SI-534
-		public async Task< IEnumerable< LightspeedOrder2 > > GetOrdersAsync2( DateTime dateFrom, DateTime dateTo, CancellationToken ctx )
-		{
-			LightspeedLogger.Log.Debug( "Started getting orders from lightspeed from {0} to {1}", dateFrom, dateTo );
-
-			var getSalesRequest = new GetSalesRequest2( dateFrom, dateTo );
-
-			var rawOrders = new List< LightspeedOrder2 >();
-
-			var response =
-				( await this._webRequestServices.GetResponseAsync< OrderList2 >( getSalesRequest, ctx ) );
+				await this._webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx );
 			if( response.Sale != null )
 				rawOrders = response.Sale.ToList();
 
@@ -329,6 +223,5 @@ namespace LightspeedAccess
 			LightspeedLogger.Log.Debug( "Retrieving orders completed" );
 			return rawOrders;
 		}
-		#endregion
 	}
 }

@@ -8,18 +8,6 @@ namespace LightspeedAccess.Models.ShippingInfo
 		[ XmlElement( "saleID" ) ]
 		public int SaleId{ get; set; }
 
-		public string firstName{ get; set; }
-		public string lastName{ get; set; }
-		public string company{ get; set; }
-		public Contact Contact{ get; set; }
-	}
-
-	[ XmlType( "ShipTo" ) ]
-	public class ShipTo2
-	{
-		[ XmlElement( "saleID" ) ]
-		public int SaleId{ get; set; }
-
 		[ XmlElement( "firstName" ) ]
 		public string FirstName{ get; set; }
 
@@ -30,6 +18,6 @@ namespace LightspeedAccess.Models.ShippingInfo
 		public string Company{ get; set; }
 
 		[ XmlElement( "Contact" ) ]
-		public Contact2 Contact{ get; set; }
+		public Contact Contact{ get; set; }
 	}
 }

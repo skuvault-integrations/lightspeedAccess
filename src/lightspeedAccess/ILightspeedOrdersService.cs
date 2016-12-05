@@ -12,7 +12,5 @@ namespace LightspeedAccess
 	{
 		IEnumerable< LightspeedOrder > GetOrders( DateTime dateFrom, DateTime dateTo );
 		Task< IEnumerable< LightspeedOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo, CancellationToken ctx );
-		IEnumerable< LightspeedOrder2 > GetOrders2( DateTime dateFrom, DateTime dateTo );
-		Task< IEnumerable< LightspeedOrder2 > > GetOrdersAsync2( DateTime dateFrom, DateTime dateTo, CancellationToken ctx );
 	}
 }

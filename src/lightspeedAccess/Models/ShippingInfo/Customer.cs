@@ -18,6 +18,6 @@ namespace LightspeedAccess.Models.ShippingInfo
 		public string Company{ get; set; }
 
 		[ XmlElement( "Contact" ) ]
-		public Contact2 Contact{ get; set; }
+		public Contact Contact{ get; set; }
 	}
 }
