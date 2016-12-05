@@ -5,11 +5,22 @@ namespace LightspeedAccess.Models.ShippingInfo
 	[ XmlType( "ContactAddress" ) ]
 	public class LightspeedAddress
 	{
-		public string address1{ get; set; }
-		public string address2{ get; set; }
-		public string zip{ get; set; }
-		public string country{ get; set; }
-		public string state{ get; set; }
-		public string city{ get; set; }
+		[ XmlElement( "address1" ) ]
+		public string Address1{ get; set; }
+
+		[ XmlElement( "address2" ) ]
+		public string Address2{ get; set; }
+
+		[ XmlElement( "zip" ) ]
+		public string Zip{ get; set; }
+
+		[ XmlElement( "country" ) ]
+		public string Country{ get; set; }
+
+		[ XmlElement( "state" ) ]
+		public string State{ get; set; }
+
+		[ XmlElement( "city" ) ]
+		public string City{ get; set; }
 	}
 }

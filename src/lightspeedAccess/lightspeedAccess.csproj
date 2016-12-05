@@ -73,9 +73,11 @@
     <Compile Include="Models\Common\LightspeedMoneyType.cs" />
     <Compile Include="Models\Order\LightspeedOrder.cs" />
     <Compile Include="Models\Order\SaleLine.cs" />
+    <Compile Include="Models\ShippingInfo\LightspeedWebsite.cs" />
     <Compile Include="Models\ShippingInfo\LightspeedEmail.cs" />
     <Compile Include="Models\ShippingInfo\LightspeedPhone.cs" />
     <Compile Include="Models\ShippingInfo\ShipInfoList.cs" />
+    <Compile Include="Models\ShippingInfo\Customer.cs" />
     <Compile Include="Models\ShippingInfo\ShipTo.cs" />
     <Compile Include="Models\Product\LightspeedProduct.cs" />
     <Compile Include="Models\Request\GetItemsRequest.cs" />

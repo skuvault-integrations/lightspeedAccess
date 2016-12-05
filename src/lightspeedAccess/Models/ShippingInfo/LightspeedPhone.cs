@@ -11,5 +11,7 @@ namespace lightspeedAccess.Models.ShippingInfo
 	public class LightspeedPhone
 	{
 		public string number{ get; set; }
+
+		public string useType{ get; set; }
 	}
 }

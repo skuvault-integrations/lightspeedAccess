@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using LightspeedAccess.Models.Common;
 using LightspeedAccess.Models.Product;
@@ -32,7 +29,11 @@ namespace LightspeedAccess.Models.Order
 
 		public HashSet< LightspeedProduct > Products{ get; set; }
 
+		[ XmlElement( "ShipTo" ) ]
 		public ShipTo ShipTo{ get; set; }
+
+		[ XmlElement( "Customer" ) ]
+		public Customer Customer{ get; set; }
 
 		[ XmlElement( "shopID" ) ]
 		public int ShopId{ get; set; }
@@ -51,7 +52,7 @@ namespace LightspeedAccess.Models.Order
 
 		public int GetCount()
 		{
-			return count;
+			return this.count;
 		}
 
 		public void Aggregate( IPaginatedResponse other )
@@ -60,7 +61,7 @@ namespace LightspeedAccess.Models.Order
 			if( otherTyped != null )
 			{
 				if( otherTyped.Sale != null )
-					Sale = Sale.Concat( otherTyped.Sale ).ToArray();
+					this.Sale = this.Sale.Concat( otherTyped.Sale ).ToArray();
 			}
 		}
 	}

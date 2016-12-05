@@ -2,11 +2,11 @@
 
 namespace LightspeedAccess.Models.ShippingInfo
 {
-	[ XmlType( "ShipTo" ) ]
-	public class ShipTo
+	[ XmlType( "Customer" ) ]
+	public class Customer
 	{
-		[ XmlElement( "saleID" ) ]
-		public int SaleId{ get; set; }
+		[ XmlElement( "customerID" ) ]
+		public int CustomerId{ get; set; }
 
 		[ XmlElement( "firstName" ) ]
 		public string FirstName{ get; set; }

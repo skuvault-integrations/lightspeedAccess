@@ -47,9 +47,8 @@ namespace LightspeedAccess
 
 			LightspeedLogger.Log.Debug( "Got {0} raw orders", rawOrders.Count );
 
-			var shopsNames = GetShopNames();
-			var items = GetItems( rawOrders );
-			var shipInfos = GetShipInfo( rawOrders );
+			var shopsNames = this.GetShopNames();
+			var items = this.GetItems( rawOrders );
 
 			LightspeedLogger.Log.Debug( "Adding shop info, sale lines and ship info to raw orders..." );
 			rawOrders.ForEach( o =>
@@ -57,9 +56,6 @@ namespace LightspeedAccess
 				o.SaleLines.ForEach( s =>
 					o.Products.Add( items.ToList().Find( i => i.ItemId == s.ItemId ) )
 					);
-
-				if( shipInfos.ContainsKey( o.SaleId ) )
-					o.ShipTo = shipInfos.GetValue( o.SaleId );
 
 				if( shopsNames.ContainsKey( o.ShopId ) )
 					o.ShopName = shopsNames.GetValue( o.ShopId );
@@ -72,9 +68,13 @@ namespace LightspeedAccess
 
 		private IEnumerable< LightspeedProduct > GetItems( IEnumerable< LightspeedOrder > orders )
 		{
-			LightspeedLogger.Log.Debug( "Started getting products for orders" );
-
 			var itemIdsFull = orders.SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ) ).ToHashSet();
+			return this.GetItems( itemIdsFull );
+		}
+
+		private IEnumerable< LightspeedProduct > GetItems( HashSet< int > itemIdsFull )
+		{
+			LightspeedLogger.Log.Debug( "Started getting products for orders" );
 
 			var itemIdsPartitioned = itemIdsFull.ToList().Partition( 100 );
 
@@ -86,12 +86,12 @@ namespace LightspeedAccess
 				ActionPolicies.Submit.Do(
 					() =>
 					{
-						var response = this._webRequestServices.GetResponse<LightspeedProductList>( getItemsRequest );
-						if ( response.Item != null )
-							result.AddRange( this._webRequestServices.GetResponse<LightspeedProductList>( getItemsRequest ).Item.ToList() );
+						var response = this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest );
+						if( response.Item != null )
+							result.AddRange( this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest ).Item.ToList() );
 					} );
 			} );
-	
+
 			LightspeedLogger.Log.Debug( "Got {0} products for orders", result.Count );
 
 			return result;
@@ -140,10 +140,15 @@ namespace LightspeedAccess
 			return result;
 		}
 
-		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( IEnumerable< LightspeedOrder > orders, CancellationToken ctx )
+		private Task< IEnumerable< LightspeedProduct > > GetItemsAsync( IEnumerable< LightspeedOrder > orders, CancellationToken ctx )
+		{
+			var itemIdsFull = orders.Where( s => s.SaleLines != null ).ToList().SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ).Where( id => id != 0 ) ).ToHashSet();
+			return this.GetItemsAsync( itemIdsFull, ctx );
+		}
+
+		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( HashSet< int > itemIdsFull, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Warn( "Started getting products for orders" );
-			var itemIdsFull = orders.Where( s => s.SaleLines != null ).ToList().SelectMany( o => o.SaleLines.Select( sl => sl.ItemId ).Where( id => id != 0 ) ).ToHashSet();
 
 			if( itemIdsFull.Count == 0 )
 				return new List< LightspeedProduct >();
@@ -155,7 +160,7 @@ namespace LightspeedAccess
 				return this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx );
 			} );
 			await Task.WhenAll( tasks );
-			var result = tasks.SelectMany( t => t.Result.Item ?? new LightspeedProduct[ 0 ] ).ToList(); 
+			var result = tasks.SelectMany( t => t.Result.Item ?? new LightspeedProduct[ 0 ] ).ToList();
 
 			LightspeedLogger.Log.Debug( "Got {0} products for orders", result.Count );
 			return result;
@@ -186,7 +191,7 @@ namespace LightspeedAccess
 			var rawOrders = new List< LightspeedOrder >();
 
 			var response =
-				( await this._webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx ) );
+				await this._webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx );
 			if( response.Sale != null )
 				rawOrders = response.Sale.ToList();
 
@@ -196,7 +201,6 @@ namespace LightspeedAccess
 			LightspeedLogger.Log.Debug( "Got {0} raw orders", rawOrders.Count );
 
 			var items = await this.GetItemsAsync( rawOrders, ctx );
-			var shipInfos = await this.GetShipInfoAsync( rawOrders, ctx );
 			var shopsNames = await this.GetShopNamesAsync( ctx );
 
 			LightspeedLogger.Log.Debug( "Adding shop info, sale lines and ship info to raw orders..." );
@@ -211,9 +215,6 @@ namespace LightspeedAccess
 							o.Products.Add( item );
 					} );
 				}
-
-				if( shipInfos.ContainsKey( o.SaleId ) )
-					o.ShipTo = shipInfos.GetValue( o.SaleId );
 
 				if( shopsNames.ContainsKey( o.ShopId ) )
 					o.ShopName = shopsNames.GetValue( o.ShopId );

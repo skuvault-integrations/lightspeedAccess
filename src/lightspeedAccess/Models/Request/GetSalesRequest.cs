@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LightspeedAccess.Models.Request
 {
 	public class GetSalesRequest: LightspeedRequest, IRequestPagination
 	{
-		public int Limit{ get; private set; }
+		public int Limit{ get; }
 		public int Offset{ get; private set; }
 
-		public DateTime FromDateUtc{ get; private set; }
-		public DateTime ToDateUtc{ get; private set; }
+		public DateTime FromDateUtc{ get; }
+		public DateTime ToDateUtc{ get; }
 
 		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
 		{
@@ -24,35 +21,35 @@ namespace LightspeedAccess.Models.Request
 		{
 			return new Dictionary< LightspeedRequestPathParam, string >
 			{
-				{ LightspeedRequestPathParam.TimeStamp, LightspeedDateRangeParamBuilder.GetDateDateRangeParam( FromDateUtc, ToDateUtc ) },
-				{ LightspeedRequestPathParam.Limit, Limit.ToString() },
-				{ LightspeedRequestPathParam.Offset, Offset.ToString() },
+				{ LightspeedRequestPathParam.TimeStamp, LightspeedDateRangeParamBuilder.GetDateDateRangeParam( this.FromDateUtc, this.ToDateUtc ) },
+				{ LightspeedRequestPathParam.Limit, this.Limit.ToString() },
+				{ LightspeedRequestPathParam.Offset, this.Offset.ToString() },
 				{ LightspeedRequestPathParam.Completed, "true" },
-				{ LightspeedRequestPathParam.LoadRelations, "[\"SaleLines\"]" }
+				{ LightspeedRequestPathParam.LoadRelations, "[\"SaleLines\",\"Customer\",\"ShipTo\",\"Customer.Contact\",\"ShipTo.Contact\"]" }
 			};
 		}
 
 		public GetSalesRequest( DateTime fromDateUtc, DateTime toDateUtc, int offset = 0, int limit = 50 )
 		{
-			Limit = limit;
-			Offset = offset;
-			FromDateUtc = fromDateUtc;
-			ToDateUtc = toDateUtc;
+			this.Limit = limit;
+			this.Offset = offset;
+			this.FromDateUtc = fromDateUtc;
+			this.ToDateUtc = toDateUtc;
 		}
 
 		public void SetOffset( int offset )
 		{
-			Offset = offset;
+			this.Offset = offset;
 		}
 
 		public int GetOffset()
 		{
-			return Offset;
+			return this.Offset;
 		}
 
 		public int GetLimit()
 		{
-			return Limit;
+			return this.Limit;
 		}
 
 		public override string ToString()
