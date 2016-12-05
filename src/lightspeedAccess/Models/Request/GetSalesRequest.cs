@@ -5,11 +5,11 @@ namespace LightspeedAccess.Models.Request
 {
 	public class GetSalesRequest: LightspeedRequest, IRequestPagination
 	{
-		public int Limit{ get; }
+		public int Limit{ get; private set; }
 		public int Offset{ get; private set; }
 
-		public DateTime FromDateUtc{ get; }
-		public DateTime ToDateUtc{ get; }
+		public DateTime FromDateUtc{ get; private set; }
+		public DateTime ToDateUtc{ get; private set; }
 
 		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
 		{
