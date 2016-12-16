@@ -48,7 +48,7 @@ namespace lightspeedAccessTests.Shops
 		public void PushToShopTest()
 		{
 			var service = _factory.CreateShopsService( _config );
-			service.UpdateOnHandQuantity( 5, 172, 1, 1 );
+			service.UpdateOnHandQuantity( 5, "sku5", 172, "shop172", 1, 1 );
 		}
 
 		[ Test ]
@@ -56,7 +56,7 @@ namespace lightspeedAccessTests.Shops
 		{
 			var service = _factory.CreateShopsService( _config );
 			var cSource = new CancellationTokenSource();
-			var task = service.UpdateOnHandQuantityAsync( 5, 172, 1, 1, cSource.Token );
+			var task = service.UpdateOnHandQuantityAsync( 5, "sku5", 172, "shop172", 1, 1, cSource.Token );
 			task.Wait();
 		}
 

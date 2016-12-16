@@ -108,7 +108,7 @@ namespace lightspeedAccessTests.Orders
 			for( int i = 0; i < 100; i++ )
 			{
 				var ordersTask = service.GetOrdersAsync( startDate, endDate, cSource.Token );
-				var itemUpdateTask = invService.UpdateOnHandQuantityAsync( item.ItemId, item.ItemShops[ 0 ].ShopId, item.ItemShops[ 0 ].ItemShopId, 10, cSource.Token );
+				var itemUpdateTask = invService.UpdateOnHandQuantityAsync( item.ItemId, item.Sku, item.ItemShops[ 0 ].ShopId, "Shop" + item.ItemShops[ 0 ].ItemShopId, item.ItemShops[ 0 ].ItemShopId, 10, cSource.Token );
 
 				tasks.Add( ordersTask );
 				tasks.Add( itemUpdateTask );
