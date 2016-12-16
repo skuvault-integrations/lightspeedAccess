@@ -58,18 +58,18 @@ namespace LightspeedAccess
 			return shops.ToList();
 		}
 
-		public void UpdateOnHandQuantity( int itemId, string sku, int shopId, string shopName, int itemShopRelationId, int quantity )
+		public void UpdateOnHandQuantity( int itemId, int shopId, int itemShopRelationId, int quantity, string logComment = null )
 		{
-			string paramInfo = $"itemId:{itemId}, sku:\"{sku}\", shopId:{shopId}, shopName:\"{shopName}\", itemShopRelationId:{itemShopRelationId}, quantity:{quantity}";
+			string paramInfo = $"itemId:{itemId}, shopId:{shopId}, itemShopRelationId:{itemShopRelationId}, quantity:{quantity}{( !string.IsNullOrEmpty( logComment ) ? ", " : "" ) + logComment}";
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity. " + paramInfo );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			this._webRequestServicesForUpdating.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest );
 			LightspeedLogger.Log.Debug( "Quantity updated successfully. " + paramInfo );
 		}
 
-		public async Task UpdateOnHandQuantityAsync( int itemId, string sku, int shopId, string shopName, int itemShopRelationId, int quantity, CancellationToken ctx )
+		public async Task UpdateOnHandQuantityAsync( int itemId, int shopId, int itemShopRelationId, int quantity, CancellationToken ctx, string logComment = null )
 		{
-			string paramInfo = $"itemId:{itemId}, sku:\"{sku}\", shopId:{shopId}, shopName:\"{shopName}\", itemShopRelationId:{itemShopRelationId}, quantity:{quantity}";
+			string paramInfo = $"itemId:{itemId}, shopId:{shopId}, itemShopRelationId:{itemShopRelationId}, quantity:{quantity}{( !string.IsNullOrEmpty( logComment ) ? ", " : "" ) + logComment}";
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity. " + paramInfo );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			await this._webRequestServicesForUpdating.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, ctx );

@@ -11,8 +11,8 @@ namespace LightspeedAccess
 	{
 		IEnumerable< Shop > GetShops();
 		Task< IEnumerable< Shop > > GetShopsAsync( CancellationToken ctx );
-		void UpdateOnHandQuantity( int itemId, string sku, int shopId, string shopName, int itemShopRelationId, int quantity );
-		Task UpdateOnHandQuantityAsync( int itemId, string sku, int shopId, string shopName, int itemShopRelationId, int quantity, CancellationToken ctx );
+		void UpdateOnHandQuantity( int itemId, int shopId, int itemShopRelationId, int quantity, string logComment = null);
+		Task UpdateOnHandQuantityAsync( int itemId, int shopId, int itemShopRelationId, int quantity, CancellationToken ctx, string logComment = null );
 		Task< IDictionary< string, LightspeedProduct > > GetItems( IEnumerable< string > itemSkus, CancellationToken ctx );
 		Task< IEnumerable< LightspeedProduct > > GetItems( int shopId, CancellationToken ctx );
 		Task< IEnumerable< LightspeedProduct > > GetItemsCreatedInShopAsync( int shopId, DateTime modifiedUtc, CancellationToken ctx );
