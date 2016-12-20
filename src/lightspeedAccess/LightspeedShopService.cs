@@ -60,7 +60,7 @@ namespace LightspeedAccess
 
 		public void UpdateOnHandQuantity( int itemId, int shopId, int itemShopRelationId, int quantity, string logComment = null )
 		{
-			string paramInfo = $"itemId:{itemId}, shopId:{shopId}, itemShopRelationId:{itemShopRelationId}, quantity:{quantity}{( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment}";
+			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}", itemId, shopId, itemShopRelationId, quantity, ( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment );
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity. " + paramInfo );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			this._webRequestServicesForUpdating.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest );
@@ -69,7 +69,7 @@ namespace LightspeedAccess
 
 		public async Task UpdateOnHandQuantityAsync( int itemId, int shopId, int itemShopRelationId, int quantity, CancellationToken ctx, string logComment = null )
 		{
-			string paramInfo = $"itemId:{itemId}, shopId:{shopId}, itemShopRelationId:{itemShopRelationId}, quantity:{quantity}{( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment}";
+			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}", itemId, shopId, itemShopRelationId, quantity, ( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment );
 			LightspeedLogger.Log.Debug( "Starting update shop item quantity. " + paramInfo );
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			await this._webRequestServicesForUpdating.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, ctx );
