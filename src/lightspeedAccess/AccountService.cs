@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using lightspeedAccess.Models.Account;
 using lightspeedAccess.Models.Request;
 using LightspeedAccess.Misc;
@@ -15,10 +11,10 @@ namespace lightspeedAccess
 	{
 		private readonly WebRequestService _webRequestServices;
 
-		public AccountService( LightspeedConfig config )
+		public AccountService( LightspeedConfig config, LightspeedAuthService authService )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedAccountService with config {0}", config.ToString() );
-			_webRequestServices = new WebRequestService( config, null );
+			this._webRequestServices = new WebRequestService( config, null, authService );
 		}
 
 		public int GetAccoundId()

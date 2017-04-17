@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using lightspeedAccess;
 using lightspeedAccess.Misc;
 using lightspeedAccess.Models.Request;
 using lightspeedAccess.Models.Shop;
@@ -25,11 +26,11 @@ namespace LightspeedAccess
 		private readonly WebRequestService _webRequestServicesForUpdating;
 		private readonly LightspeedConfig _config;
 
-		public LightspeedShopService( LightspeedConfig config )
+		public LightspeedShopService( LightspeedConfig config, LightspeedAuthService authService )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedShopsService with config {0}", config.ToString() );
-			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync( config.AccountId ) );
-			this._webRequestServicesForUpdating = new WebRequestService( config, new ThrottlerAsync( ThrottlerConfig.CreateDefaultForWriteRequests( config.AccountId ) ) );
+			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync( config.AccountId ), authService );
+			this._webRequestServicesForUpdating = new WebRequestService( config, new ThrottlerAsync( ThrottlerConfig.CreateDefaultForWriteRequests( config.AccountId ) ), authService );
 			this._config = config;
 		}
 

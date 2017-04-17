@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using lightspeedAccess;
+﻿using lightspeedAccess;
 using LightspeedAccess.Models.Configuration;
 
 namespace LightspeedAccess
@@ -31,22 +26,22 @@ namespace LightspeedAccess
 
 		public ILightspeedOrdersService CreateOrdersService( LightspeedConfig config )
 		{
-			return new LightspeedOrdersService( config );
+			return new LightspeedOrdersService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
 		}
 
 		public ILightspeedShopService CreateShopsService( LightspeedConfig config )
 		{
-			return new LightspeedShopService( config );
+			return new LightspeedShopService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
 		}
 
 		public IAccountService CreateAccountsService( LightspeedConfig config )
 		{
-			return new AccountService( config );
+			return new AccountService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
 		}
 
 		public ILigthspeedAuthService CreateLightspeedAuthService()
 		{
-			return new LightspeedAuthService( LightspeedClientId, LightspeedClientSecret, LightspeedRedirectUri );
+			return new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret );
 		}
 	}
 }

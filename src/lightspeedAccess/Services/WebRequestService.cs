@@ -1,18 +1,14 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
-using System.Xml;
 using System.Xml.Serialization;
+using lightspeedAccess;
 using lightspeedAccess.Models.Request;
-using LightspeedAccess.Models.Order;
 using LightspeedAccess.Misc;
 using LightspeedAccess.Models.Configuration;
 using LightspeedAccess.Models.Request;
@@ -23,11 +19,13 @@ namespace LightspeedAccess.Services
 	{
 		private readonly LightspeedConfig _config;
 		private readonly ThrottlerAsync _throttler;
+		private readonly LightspeedAuthService _authService;
 
-		public WebRequestService( LightspeedConfig config, ThrottlerAsync throttler )
+		public WebRequestService( LightspeedConfig config, ThrottlerAsync throttler, LightspeedAuthService authService )
 		{
 			this._config = config;
 			this._throttler = throttler;
+			this._authService = authService;
 		}
 
 		private static void ManageRequestBody( LightspeedRequest request, ref HttpWebRequest webRequest )
@@ -66,24 +64,39 @@ namespace LightspeedAccess.Services
 		{
 			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
 
-			var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
-			ManageRequestBody( request, ref webRequest );
+			var webRequestAction = new Func< WebResponse >( () =>
+				{
+					var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAccessToken ) );
+					ManageRequestBody( request, ref webRequest );
+					try
+					{
+						return webRequest.GetResponse();
+					}
+					catch( WebException ex )
+					{
+						LogRequestFailure( ex, webRequest );
+						if( LightspeedAuthService.IsUnauthorizedException( ex ) )
+						{
+							this.RefreshSession();
+						}
+						throw;
+					}
+				}
+			);
 
-			using ( var response = webRequest.GetResponse() )
+			using( var response = ActionPolicies.Submit.Get( () => webRequestAction() ) )
 			{
 				var stream = response.GetResponseStream();
 
 				LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
-				var deserializer =
-					new XmlSerializer( typeof( T ) );
-
+				var deserializer = new XmlSerializer( typeof( T ) );
 				var result = ( T ) deserializer.Deserialize( stream );
 				LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
 
 				var possibleAdditionalResponses = this.IterateThroughPagination( request, result );
 
 				var aggregatedResult = result as IPaginatedResponse;
-				if ( aggregatedResult != null )
+				if( aggregatedResult != null )
 				{
 					LightspeedLogger.Log.Debug( "Aggregating paginated results for request {0}", request.ToString() );
 					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
@@ -94,27 +107,13 @@ namespace LightspeedAccess.Services
 			}
 		}
 
-		private static bool IsItemNotFound( LightspeedRequest request, WebException ex )
-		{
-			if( !( request is GetItemRequest || request is UpdateOnHandQuantityRequest ) || ex.Status != WebExceptionStatus.ProtocolError )
-			{
-				return false;
-			}
-
-			var response = ex.Response as HttpWebResponse;
-			if( response == null )
-				return false;
-
-			return response.StatusCode == HttpStatusCode.NotFound;
-		}
-
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, CancellationToken ctx )
 		{
 			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
 			var webRequestAction = new Func< Task< WebResponse > >(
 				async () =>
 				{
-					var requestDelegate = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAuthToken ) );
+					var requestDelegate = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAccessToken ) );
 					ManageRequestBody( request, ref requestDelegate );
 					try
 					{
@@ -123,12 +122,16 @@ namespace LightspeedAccess.Services
 					catch ( WebException ex )
 					{
 						LogRequestFailure( ex, requestDelegate );
-						if ( IsItemNotFound( request, ex ) )
+						if( LightspeedAuthService.IsUnauthorizedException( ex ) )
+						{
+							this.RefreshSession();
+						}
+						if( IsItemNotFound( request, ex ) )
 						{
 							return null;
 						}
 						throw;
-					}					
+					}
 				}
 				);
 
@@ -159,6 +162,25 @@ namespace LightspeedAccess.Services
 				response.Close();
 				return result;
 			}
+		}
+
+		private void RefreshSession()
+		{
+			this._config.LightspeedAccessToken = this._authService.GetNewAccessToken( this._config.LightspeedRefreshToken );
+		}
+
+		private static bool IsItemNotFound( LightspeedRequest request, WebException ex )
+		{
+			if( !( request is GetItemRequest || request is UpdateOnHandQuantityRequest ) || ex.Status != WebExceptionStatus.ProtocolError )
+			{
+				return false;
+			}
+
+			var response = ex.Response as HttpWebResponse;
+			if( response == null )
+				return false;
+
+			return response.StatusCode == HttpStatusCode.NotFound;
 		}
 
 		private static bool NeedToIterateThroughPagination< T >( T response, LightspeedRequest r )
@@ -230,7 +252,7 @@ namespace LightspeedAccess.Services
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
 			request.Method = WebRequestMethods.Http.Get;
-			if( this._config.LightspeedAuthToken == null )
+			if( string.IsNullOrWhiteSpace( this._config.LightspeedAccessToken ) )
 				request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
 			request.Timeout = this._config.TimeoutSeconds * 1000;
 

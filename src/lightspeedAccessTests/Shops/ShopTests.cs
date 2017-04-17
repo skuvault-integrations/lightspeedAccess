@@ -18,8 +18,9 @@ namespace lightspeedAccessTests.Shops
 		[ SetUp ]
 		public void Init()
 		{
-			_factory = new LightspeedFactory( "n/a", "n/a", "n/a" );
-			_config = new LightspeedConfig( 767 );
+			var credentials = new Credentials.TestsCredentials(@"..\..\Files\lightspeedCredentials.csv");
+			this._factory = new LightspeedFactory(credentials.ClientId, credentials.ClientSecret, "");
+			this._config = new LightspeedConfig(credentials.AccountId, credentials.AccessToken, credentials.RefreshToken);
 		}
 
 		[ Test ]
@@ -48,7 +49,7 @@ namespace lightspeedAccessTests.Shops
 		public void PushToShopTest()
 		{
 			var service = _factory.CreateShopsService( _config );
-			service.UpdateOnHandQuantity( 5, 172, 1, 1 );
+			service.UpdateOnHandQuantity( 7, 1, 15, 1 );
 		}
 
 		[ Test ]
@@ -56,7 +57,7 @@ namespace lightspeedAccessTests.Shops
 		{
 			var service = _factory.CreateShopsService( _config );
 			var cSource = new CancellationTokenSource();
-			var task = service.UpdateOnHandQuantityAsync( 5, 172, 1, 1, cSource.Token );
+			var task = service.UpdateOnHandQuantityAsync( 7, 1, 15, 1, cSource.Token );
 			task.Wait();
 		}
 
@@ -67,7 +68,7 @@ namespace lightspeedAccessTests.Shops
 		{
 			var service = _factory.CreateShopsService( _config );
 			var cSource = new CancellationTokenSource();
-			var task = service.GetItems( new List< String > { "210000000007" }, cSource.Token );
+			var task = service.GetItems( new List< String > { "test1234" }, cSource.Token );
 			task.Wait();
 			Assert.Greater( task.Result.Count, 0 );
 		}

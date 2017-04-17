@@ -61,6 +61,7 @@
     <Compile Include="Misc\ThrottlerConfig.cs" />
     <Compile Include="Misc\ThrottlerConfigBuilder.cs" />
     <Compile Include="Models\Account\LightspeedAccountInfo.cs" />
+    <Compile Include="Models\Auth\AuthResult.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Misc\QuotaParser.cs" />
     <Compile Include="Models\Request\GetAccountRequest.cs" />

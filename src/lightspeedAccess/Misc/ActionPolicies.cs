@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using lightspeedAccess;
 using Netco.ActionPolicyServices;
 using Netco.Utils;
 
@@ -20,7 +21,8 @@ namespace LightspeedAccess.Misc
 		private static readonly ActionPolicy _lightspeedRetryPolicy = ActionPolicy.Handle< Exception >().Retry( 10, ( ex, i ) =>
 		{
 			LightspeedLogger.Log.Trace( ex, "Retrying Lightspeed API submit call for the {0} time", i );
-			SystemUtil.Sleep( TimeSpan.FromSeconds( RetryIntervalSeconds ) );
+			if( !LightspeedAuthService.IsUnauthorizedException( ex ) )
+				SystemUtil.Sleep( TimeSpan.FromSeconds( RetryIntervalSeconds ) );
 		} );
 
 		public static ActionPolicyAsync SubmitAsync
@@ -32,7 +34,8 @@ namespace LightspeedAccess.Misc
 			ActionPolicyAsync.Handle< Exception >().RetryAsync( 10, async ( ex, i ) =>
 			{
 				LightspeedLogger.Log.Warn( ex, "Retrying Lightspeed API submit call for the {0} time", i );
-				await Task.Delay( TimeSpan.FromSeconds( RetryIntervalSeconds ) );
+				if( !LightspeedAuthService.IsUnauthorizedException( ex ) )
+					await Task.Delay( TimeSpan.FromSeconds( RetryIntervalSeconds ) );
 			} );
 	}
 }

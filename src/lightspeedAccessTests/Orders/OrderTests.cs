@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using LightspeedAccess;
 using LightspeedAccess.Models.Configuration;
-using LightspeedAccess.Models.Order;
-using LightspeedAccess.Models.Product;
-using LightspeedAccess.Models.Request;
-using LightspeedAccess.Services;
 using NUnit.Framework;
 
 namespace lightspeedAccessTests.Orders
@@ -21,28 +15,12 @@ namespace lightspeedAccessTests.Orders
 		private LightspeedFactory _factory;
 		private LightspeedConfig _config;
 
-		private static LightspeedConfig GetConfig()
-		{
-			try
-			{
-				using( StreamReader sr = new StreamReader( @"D:\lightspeedCredentials.txt" ) )
-				{
-					var accountId = sr.ReadLine();
-					var token = sr.ReadLine();
-					return new LightspeedConfig( Int32.Parse( accountId ), token );
-				}
-			}
-			catch( Exception e )
-			{
-				return new LightspeedConfig();
-			}
-		}
-
 		[ SetUp ]
 		public void Init()
 		{
-			this._factory = new LightspeedFactory( "", "", "" );
-			this._config = GetConfig();
+			var credentials = new Credentials.TestsCredentials( @"..\..\Files\lightspeedCredentials.csv" );
+			this._factory = new LightspeedFactory( credentials.ClientId, credentials.ClientSecret, "" );
+			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken );
 		}
 
 		[ Test ]
@@ -123,7 +101,7 @@ namespace lightspeedAccessTests.Orders
 		public void SmokeTest()
 		{
 			var service = _factory.CreateLightspeedAuthService();
-			var token = service.GetAuthToken( "" );
+			var token = service.GetAuthByTemporyToken( "" );
 			Console.WriteLine( "YOUR TOKEN IS: " + token );
 			Assert.Greater( 1, 0 );
 		}

@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using lightspeedAccess.Misc;
-using lightspeedAccess.Models;
 using lightspeedAccess.Models.Common;
 using Netco.ActionPolicyServices;
 using System.IO;
 using System.Runtime.ExceptionServices;
+using lightspeedAccess;
 
 namespace LightspeedAccess.Misc
 {
@@ -39,6 +37,11 @@ namespace LightspeedAccess.Misc
 					var errMessage = string.Format( "Throttler: faced non-throttling exception: {0}", ex.Message );
 					LightspeedLogger.Log.Debug( errMessage );
 
+					if( LightspeedAuthService.IsUnauthorizedException( ex ) )
+					{
+						throw ex;
+					}
+
 					var webException = ex as WebException;
 					if( webException != null )
 					{
@@ -46,13 +49,19 @@ namespace LightspeedAccess.Misc
 						if( response == null )
 							throw new LightspeedException( errMessage, ex );
 
-						string responseText;
-						using( var reader = new StreamReader( response.GetResponseStream() ) )
+						string responseText = null;
+						try
 						{
-							responseText = reader.ReadToEnd();
+							using( var reader = new StreamReader( response.GetResponseStream() ) )
+							{
+								responseText = reader.ReadToEnd();
+							}
 						}
-
-						throw new LightspeedException( responseText, ex );
+						catch
+						{
+						}
+						if( !string.IsNullOrWhiteSpace( responseText ) )
+							throw new LightspeedException( responseText, ex );
 					}
 
 					throw new LightspeedException( errMessage, ex);

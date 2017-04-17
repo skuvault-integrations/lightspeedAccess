@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using lightspeedAccess;
 using LightspeedAccess.Misc;
 using LightspeedAccess.Models.Configuration;
 using LightspeedAccess.Models.Order;
@@ -20,11 +21,11 @@ namespace LightspeedAccess
 		private readonly WebRequestService _webRequestServices;
 		private readonly ThrottlerAsync throttler;
 
-		public LightspeedOrdersService( LightspeedConfig config )
+		public LightspeedOrdersService( LightspeedConfig config, LightspeedAuthService authService )
 		{
 			LightspeedLogger.Log.Debug( "Started LightspeedOrdersService with config {0}", config.ToString() );
 			this.throttler = new ThrottlerAsync( config.AccountId );
-			this._webRequestServices = new WebRequestService( config, this.throttler );
+			this._webRequestServices = new WebRequestService( config, this.throttler, authService );
 		}
 
 		public IEnumerable< LightspeedOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
@@ -35,12 +36,9 @@ namespace LightspeedAccess
 
 			var rawOrders = new List< LightspeedOrder >();
 
-			ActionPolicies.Submit.Do( () =>
-			{
-				var response = this._webRequestServices.GetResponse< OrderList >( getSalesRequest );
-				if( response.Sale != null )
-					rawOrders = response.Sale.Where( s => s.SaleLines != null ).ToList();
-			} );
+			var response = this._webRequestServices.GetResponse< OrderList >( getSalesRequest );
+			if( response.Sale != null )
+				rawOrders = response.Sale.Where( s => s.SaleLines != null ).ToList();
 
 			if( rawOrders.Count == 0 )
 				return rawOrders;
@@ -83,13 +81,9 @@ namespace LightspeedAccess
 			{
 				var getItemsRequest = new GetItemsRequest( itemIds );
 
-				ActionPolicies.Submit.Do(
-					() =>
-					{
-						var response = this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest );
-						if( response.Item != null )
-							result.AddRange( this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest ).Item.ToList() );
-					} );
+				var response = this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest );
+				if( response.Item != null )
+					result.AddRange( this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest ).Item.ToList() );
 			} );
 
 			LightspeedLogger.Log.Debug( "Got {0} products for orders", result.Count );
@@ -190,8 +184,7 @@ namespace LightspeedAccess
 
 			var rawOrders = new List< LightspeedOrder >();
 
-			var response =
-				await this._webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx );
+			var response = await this._webRequestServices.GetResponseAsync< OrderList >( getSalesRequest, ctx );
 			if( response.Sale != null )
 				rawOrders = response.Sale.ToList();
 
