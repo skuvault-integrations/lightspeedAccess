@@ -106,7 +106,7 @@ namespace lightspeedAccess
 			string accessToken = ( string )jsonDictionary[ "access_token" ];
 			string refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : String.Empty;
 
-			LightspeedLogger.Log.Debug( "Deserialization completed successfully, your token is {1}", accessToken );
+			LightspeedLogger.Log.Debug( "Deserialization completed successfully, your token is {0}", accessToken );
 			return new AuthResult( accessToken, refreshToken );
 		}
 	}
