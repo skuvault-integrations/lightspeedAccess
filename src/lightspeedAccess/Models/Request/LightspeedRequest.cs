@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 using LightspeedAccess.Models.Configuration;
 
 namespace LightspeedAccess.Models.Request
@@ -20,16 +16,14 @@ namespace LightspeedAccess.Models.Request
 			return null;
 		}
 
-		public string GetUri( string authToken )
+		public string GetUri()
 		{
 			var segmentedPath = string.Empty;
 
-			GetPath().ToList().ForEach( s => segmentedPath = string.Concat( segmentedPath, s, "/" ) );
+			this.GetPath().ToList().ForEach( s => segmentedPath = string.Concat( segmentedPath, s, "/" ) );
 			segmentedPath = segmentedPath.TrimEnd( '/' );
 
-			var pathParams = GetPathParams();
-			if( authToken != null )
-				pathParams.Add( LightspeedRequestPathParam.AuthToken, authToken );
+			var pathParams = this.GetPathParams();
 
 			if( pathParams.Count != 0 )
 				segmentedPath = string.Concat( segmentedPath, "?" );
@@ -74,7 +68,6 @@ namespace LightspeedAccess.Models.Request
 
 		public static readonly LightspeedRequestPathParam Limit = new LightspeedRequestPathParam( "limit" );
 		public static readonly LightspeedRequestPathParam Offset = new LightspeedRequestPathParam( "offset" );
-		public static readonly LightspeedRequestPathParam AuthToken = new LightspeedRequestPathParam( "oauth_token" );
 		public static readonly LightspeedRequestPathParam LoadRelations = new LightspeedRequestPathParam( "load_relations" );
 		public static readonly LightspeedRequestPathParam TimeStamp = new LightspeedRequestPathParam( "timeStamp" );
 		public static readonly LightspeedRequestPathParam CreateTime = new LightspeedRequestPathParam( "createTime" );
@@ -90,7 +83,7 @@ namespace LightspeedAccess.Models.Request
 
 		public override string ToString()
 		{
-			return Param;
+			return this.Param;
 		}
 	}
 

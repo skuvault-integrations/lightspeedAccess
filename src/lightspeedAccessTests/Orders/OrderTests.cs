@@ -30,10 +30,9 @@ namespace lightspeedAccessTests.Orders
 			var endDate = DateTime.Now;
 			var startDate = endDate.Subtract( new TimeSpan( 10000, 0, 0, 0 ) );
 
-			var ordersTask = service.GetOrdersAsync( startDate, endDate, CancellationToken.None );
+			var orders = service.GetOrders( startDate, endDate );
 
-			Task.WaitAll( ordersTask );
-			Assert.Greater( ordersTask.Result.Count(), 0 );
+			Assert.Greater( orders.Count(), 0 );
 		}
 
 		[ Test ]

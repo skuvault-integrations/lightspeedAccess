@@ -66,7 +66,7 @@ namespace LightspeedAccess.Services
 
 			var webRequestAction = new Func< WebResponse >( () =>
 				{
-					var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAccessToken ) );
+					var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri() );
 					ManageRequestBody( request, ref webRequest );
 					try
 					{
@@ -113,7 +113,7 @@ namespace LightspeedAccess.Services
 			var webRequestAction = new Func< Task< WebResponse > >(
 				async () =>
 				{
-					var requestDelegate = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri( this._config.LightspeedAccessToken ) );
+					var requestDelegate = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri() );
 					ManageRequestBody( request, ref requestDelegate );
 					try
 					{
@@ -252,8 +252,7 @@ namespace LightspeedAccess.Services
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
 			request.Method = WebRequestMethods.Http.Get;
-			if( string.IsNullOrWhiteSpace( this._config.LightspeedAccessToken ) )
-				request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
+			request.Headers[ HttpRequestHeader.Authorization ] = this.CreateAuthenticationHeader();
 			request.Timeout = this._config.TimeoutSeconds * 1000;
 
 			return request;
@@ -261,11 +260,15 @@ namespace LightspeedAccess.Services
 
 		private string CreateAuthenticationHeader()
 		{
-			LightspeedLogger.Log.Debug( "Usign basic header authorization method {0} : {1}", this._config.Username, this._config.Password );
-			var authInfo = string.Concat( this._config.Username, ":", this._config.Password );
-			authInfo = Convert.ToBase64String( Encoding.Default.GetBytes( authInfo ) );
+			if( string.IsNullOrWhiteSpace( this._config.LightspeedAccessToken ) )
+			{
+				LightspeedLogger.Log.Debug( "Usign basic header authorization method {0} : {1}", this._config.Username, this._config.Password );
+				var authInfo = string.Concat( this._config.Username, ":", this._config.Password );
+				authInfo = Convert.ToBase64String( Encoding.Default.GetBytes( authInfo ) );
 
-			return string.Concat( "Basic ", authInfo );
+				return string.Concat( "Basic ", authInfo );
+			}
+			return string.Concat( "Bearer ", this._config.LightspeedAccessToken );
 		}
 
 		private static void LogRequestFailure( WebException ex, HttpWebRequest request )
