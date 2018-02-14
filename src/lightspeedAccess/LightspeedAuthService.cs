@@ -21,7 +21,7 @@ namespace lightspeedAccess
 
 		public LightspeedAuthService( string lightspeedClientId, string lightspeedClientSecret )
 		{
-			LightspeedLogger.Log.Debug( "Started LightspeedOrdersService" );
+			LightspeedLogger.Debug( "Started LightspeedAuthService", -1 );
 
 			this._lightspeedClientSecret = lightspeedClientSecret;
 			this._ligthspeedClientId = lightspeedClientId;
@@ -37,9 +37,9 @@ namespace lightspeedAccess
 			return "{0}/?response_type=code&client_id={1}&scope=employee:register%20employee:inventory%20employee:admin_shops%20employee:customers".FormatWith( TemporaryTokenEndpoint, this._ligthspeedClientId );
 		}
 
-		internal string GetNewAccessToken( string refreshToken )
+		internal string GetNewAccessToken( string refreshToken, int accountId )
 		{
-			var authResult = this.GetAuthInfo( refreshToken, RequestType.RefreshToken );
+			var authResult = this.GetAuthInfo( refreshToken, RequestType.RefreshToken, accountId );
 			return authResult.AccessToken;
 		}
 
@@ -61,9 +61,9 @@ namespace lightspeedAccess
 			return response.StatusCode == HttpStatusCode.Unauthorized;
 		}
 
-		private AuthResult GetAuthInfo( string token, RequestType requestType )
+		private AuthResult GetAuthInfo( string token, RequestType requestType, int accountId = -1 )
 		{
-			LightspeedLogger.Log.Debug( "Creating get auth token request with a token {0}", token );
+			LightspeedLogger.Debug( string.Format( "Creating get auth token request with a token {0}", token ), accountId );
 
 			var uri = new Uri( AuthTokenEndpoint );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
@@ -91,22 +91,22 @@ namespace lightspeedAccess
 				stOut.Close();
 			}
 
-			LightspeedLogger.Log.Debug( "Request body created sucessfully, sending it to server: " + data, token );
+			LightspeedLogger.Debug( string.Format( "Request body created sucessfully, sending it to server: {0}, Token:{1}", data, token ), accountId );
 
 			var response = request.GetResponse();
-			LightspeedLogger.Log.Debug( "Successfully got response from server, reading response stream" );
+			LightspeedLogger.Debug( "Successfully got response from server, reading response stream", accountId );
 
 			var reader = new StreamReader( response.GetResponseStream() );
 
 			var responseJson = reader.ReadToEnd();
 
-			LightspeedLogger.Log.Debug( "Response stream reading complete. Starting deserialization" );
+			LightspeedLogger.Debug( "Response stream reading complete. Starting deserialization", accountId );
 			var serializer = new JavaScriptSerializer();
 			var jsonDictionary = ( IDictionary< string, object > )serializer.DeserializeObject( responseJson );
 			string accessToken = ( string )jsonDictionary[ "access_token" ];
 			string refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : String.Empty;
 
-			LightspeedLogger.Log.Debug( "Deserialization completed successfully, your token is {0}", accessToken );
+			LightspeedLogger.Debug( string.Format( "Deserialization completed successfully, your token is {0}", accessToken ), accountId );
 			return new AuthResult( accessToken, refreshToken );
 		}
 	}

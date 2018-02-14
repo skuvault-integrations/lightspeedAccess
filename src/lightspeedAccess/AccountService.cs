@@ -13,13 +13,13 @@ namespace lightspeedAccess
 
 		public AccountService( LightspeedConfig config, LightspeedAuthService authService )
 		{
-			LightspeedLogger.Log.Debug( "Started LightspeedAccountService with config {0}", config.ToString() );
+			LightspeedLogger.Debug( string.Format( "Started LightspeedAccountService with config {0}", config ), config.AccountId );
 			this._webRequestServices = new WebRequestService( config, null, authService );
 		}
 
 		public int GetAccoundId()
 		{
-			LightspeedLogger.Log.Debug( "Started getting account Id for current session" );
+			LightspeedLogger.Debug( "Started getting account Id for current session", -1 );
 			var request = new GetAccountRequest();
 			return this._webRequestServices.GetResponse< LightspeedAccountList >( request ).Account.First().AccountId;
 		}

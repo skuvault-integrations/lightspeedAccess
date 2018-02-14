@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using lightspeedAccess;
+using lightspeedAccess.Misc;
 using lightspeedAccess.Models.Request;
 using LightspeedAccess.Misc;
 using LightspeedAccess.Models.Configuration;
@@ -20,21 +21,23 @@ namespace LightspeedAccess.Services
 		private readonly LightspeedConfig _config;
 		private readonly ThrottlerAsync _throttler;
 		private readonly LightspeedAuthService _authService;
+		private readonly int _accountId;
 
 		public WebRequestService( LightspeedConfig config, ThrottlerAsync throttler, LightspeedAuthService authService )
 		{
 			this._config = config;
 			this._throttler = throttler;
 			this._authService = authService;
+			this._accountId = this._config.AccountId;
 		}
 
-		private static void ManageRequestBody( LightspeedRequest request, ref HttpWebRequest webRequest )
+		private static void ManageRequestBody( LightspeedRequest request, ref HttpWebRequest webRequest, int accountId )
 		{
 			var body = request.GetBody();
 
 			if( body == null )
 				return;
-			LightspeedLogger.Log.Debug( "Creating request body from stream for request {0}", request.ToString() );
+			LightspeedLogger.Debug( string.Format( "Creating request body from stream for request {0}", request ), accountId );
 
 			webRequest.Method = "PUT";
 
@@ -46,7 +49,7 @@ namespace LightspeedAccess.Services
 			{
 				var s = sr.ReadToEnd();
 
-				LightspeedLogger.Log.Debug( "Created request body for request {0} : {1}", request.ToString(), s );
+				LightspeedLogger.Debug( string.Format( "Created request body for request {0} : {1}", request, s ), accountId);
 
 				webRequest.ContentLength = s.Length;
 				Stream dataStream = webRequest.GetRequestStream();
@@ -62,19 +65,19 @@ namespace LightspeedAccess.Services
 
 		public T GetResponse< T >( LightspeedRequest request )
 		{
-			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
+			LightspeedLogger.Debug( string.Format( "Making request {0} to lightspeed server", request ), this._accountId );
 
 			var webRequestAction = new Func< WebResponse >( () =>
 				{
 					var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri() );
-					ManageRequestBody( request, ref webRequest );
+					ManageRequestBody( request, ref webRequest, this._accountId );
 					try
 					{
 						return webRequest.GetResponse();
 					}
 					catch( WebException ex )
 					{
-						LogRequestFailure( ex, webRequest );
+						LogRequestFailure( ex, webRequest, this._accountId );
 						if( LightspeedAuthService.IsUnauthorizedException( ex ) )
 						{
 							this.RefreshSession();
@@ -84,21 +87,21 @@ namespace LightspeedAccess.Services
 				}
 			);
 
-			using( var response = ActionPolicies.Submit.Get( () => webRequestAction() ) )
+			using( var response = ActionPolicies.SubmitPolicy( this._accountId ).Get( () => webRequestAction() ) )
 			{
 				var stream = response.GetResponseStream();
 
-				LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
+				LightspeedLogger.Debug( string.Format( "Got response from server for request {0}, starting deserialization", request), this._accountId );
 				var deserializer = new XmlSerializer( typeof( T ) );
 				var result = ( T ) deserializer.Deserialize( stream );
-				LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
+				LightspeedLogger.Debug( string.Format( "Successfylly deserialized response for request {0}. Response: {1}", request, response.ToJson() ), this._accountId );
 
 				var possibleAdditionalResponses = this.IterateThroughPagination( request, result );
 
 				var aggregatedResult = result as IPaginatedResponse;
 				if( aggregatedResult != null )
 				{
-					LightspeedLogger.Log.Debug( "Aggregating paginated results for request {0}", request.ToString() );
+					LightspeedLogger.Debug( string.Format( "Aggregating paginated results for request {0}", request ), this._accountId );
 					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
 				}
 
@@ -109,19 +112,19 @@ namespace LightspeedAccess.Services
 
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, CancellationToken ctx )
 		{
-			LightspeedLogger.Log.Debug( "Making request {0} to lightspeed server", request.ToString() );
+			LightspeedLogger.Debug( string.Format( "Making request {0} to lightspeed server", request ), this._accountId );
 			var webRequestAction = new Func< Task< WebResponse > >(
 				async () =>
 				{
 					var requestDelegate = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri() );
-					ManageRequestBody( request, ref requestDelegate );
+					ManageRequestBody( request, ref requestDelegate, this._accountId );
 					try
 					{
 						return await requestDelegate.GetResponseAsync();
 					}
 					catch ( WebException ex )
 					{
-						LogRequestFailure( ex, requestDelegate );
+						LogRequestFailure( ex, requestDelegate, this._accountId );
 						if( LightspeedAuthService.IsUnauthorizedException( ex ) )
 						{
 							this.RefreshSession();
@@ -142,20 +145,20 @@ namespace LightspeedAccess.Services
 
 				var stream = response.GetResponseStream();
 
-				LightspeedLogger.Log.Debug( "Got response from server for request {0}, starting deserialization", request.ToString() );
+				LightspeedLogger.Debug( string.Format( "Got response from server for request {0}, starting deserialization", request ), this._accountId );
 				var deserializer =
 					new XmlSerializer( typeof( T ) );
 
 				var result = ( T ) deserializer.Deserialize( stream );
 
-				LightspeedLogger.Log.Debug( "Successfylly deserialized response for request {0}", request.ToString() );
+				LightspeedLogger.Debug( string.Format( "Successfylly deserialized response for request {0}. Response: {1}", request, result.ToJson() ), this._accountId );
 				var possibleAdditionalResponses = await this.IterateThroughPaginationAsync( request, result, ctx );
 
 				var aggregatedResult = result as IPaginatedResponse;
 
 				if ( aggregatedResult != null )
 				{
-					LightspeedLogger.Log.Debug( "Aggregating paginated results for request {0}", request.ToString() );
+					LightspeedLogger.Debug( string.Format( "Aggregating paginated results for request {0}", request ), this._accountId );
 					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
 				}
 
@@ -166,7 +169,7 @@ namespace LightspeedAccess.Services
 
 		private void RefreshSession()
 		{
-			this._config.LightspeedAccessToken = this._authService.GetNewAccessToken( this._config.LightspeedRefreshToken );
+			this._config.LightspeedAccessToken = this._authService.GetNewAccessToken( this._config.LightspeedRefreshToken, this._accountId );
 		}
 
 		private static bool IsItemNotFound( LightspeedRequest request, WebException ex )
@@ -204,14 +207,14 @@ namespace LightspeedAccess.Services
 			if( paginatedRequest.GetOffset() != 0 )
 				return additionalResponses;
 
-			LightspeedLogger.Log.Debug( "Response for request {0} was paginated, started iterating the remaining pages...", r.ToString() );
+			LightspeedLogger.Debug( string.Format( "Response for request {0} was paginated, started iterating the remaining pages...", r ), this._accountId );
 
 			var numPages = paginatedResponse.GetCount() / paginatedRequest.GetLimit() + 1;
 
-			LightspeedLogger.Log.Debug( "Expected number of pages for request {0} : {2}", r.ToString(), numPages );
+			LightspeedLogger.Debug( string.Format( "Expected number of pages for request {0} : {2}", r, numPages ), this._accountId );
 			for( int pageNum = 1; pageNum < numPages; pageNum++ )
 			{
-				LightspeedLogger.Log.Debug( "Processing page {0} for request {1}...", numPages, r.ToString() );
+				LightspeedLogger.Debug( string.Format( "Processing page {0} for request {1}...", numPages, r ), this._accountId );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
 				additionalResponses.Add( this.GetResponse< T >( r ) );
 			}
@@ -234,10 +237,10 @@ namespace LightspeedAccess.Services
 
 			var numPages = paginatedResponse.GetCount() / paginatedRequest.GetLimit() + 1;
 
-			LightspeedLogger.Log.Debug( "Expected number of pages for request {0} : {1}", r.ToString(), numPages );
+			LightspeedLogger.Debug( string.Format( "Expected number of pages for request {0} : {1}", r, numPages ), this._accountId );
 			for( int pageNum = 1; pageNum < numPages; pageNum++ )
 			{
-				LightspeedLogger.Log.Debug( "Processing page {0} / {1} for request {2}...", pageNum, numPages, r.ToString() );
+				LightspeedLogger.Debug( string.Format( "Processing page {0} / {1} for request {2}...", pageNum, numPages, r ), this._accountId );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
 				additionalResponses.Add( await this.GetResponseAsync< T >( r, ctx ) );
 			}
@@ -247,7 +250,7 @@ namespace LightspeedAccess.Services
 
 		private HttpWebRequest CreateHttpWebRequest( string url )
 		{
-			LightspeedLogger.Log.Debug( "Composed lightspeed request URL: {0}", url );
+			LightspeedLogger.Debug( string.Format( "Composed lightspeed request URL: {0}", url ), this._accountId );
 			var uri = new Uri( url );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
@@ -262,7 +265,7 @@ namespace LightspeedAccess.Services
 		{
 			if( string.IsNullOrWhiteSpace( this._config.LightspeedAccessToken ) )
 			{
-				LightspeedLogger.Log.Debug( "Usign basic header authorization method {0} : {1}", this._config.Username, this._config.Password );
+				LightspeedLogger.Debug( string.Format( "Usign basic header authorization method {0} : {1}", this._config.Username, this._config.Password ), this._accountId );
 				var authInfo = string.Concat( this._config.Username, ":", this._config.Password );
 				authInfo = Convert.ToBase64String( Encoding.Default.GetBytes( authInfo ) );
 
@@ -271,7 +274,7 @@ namespace LightspeedAccess.Services
 			return string.Concat( "Bearer ", this._config.LightspeedAccessToken );
 		}
 
-		private static void LogRequestFailure( WebException ex, HttpWebRequest request )
+		private static void LogRequestFailure( WebException ex, HttpWebRequest request, int accountId )
 		{
 			if ( ex.Status == WebExceptionStatus.ProtocolError )
 			{
@@ -300,8 +303,8 @@ namespace LightspeedAccess.Services
 						responseText = reader.ReadToEnd();
 					}
 					
-					LightspeedLogger.Log.Debug( "Got {0} code response from server with message {1}. Request was: {2} with body {3}", response.StatusCode, ex.Message, requestUri, requestBody );
-					LightspeedLogger.Log.Error( "Error for request {0} with requestbody {1}. ResponseBody: {2}. ResponseHeaders: {3}", requestUri, requestBody, responseText, responseJson );
+					LightspeedLogger.Debug( string.Format( "Got {0} code response from server with message {1}. Request was: {2} with body {3}", response.StatusCode, ex.Message, requestUri, requestBody ), accountId );
+					LightspeedLogger.Error( string.Format( "Error for request {0} with requestbody {1}. ResponseBody: {2}. ResponseHeaders: {3}", requestUri, requestBody, responseText, responseJson ), accountId );
 				}
 			}
 		}
@@ -310,7 +313,7 @@ namespace LightspeedAccess.Services
 		{
 			try
 			{
-				var response = await ActionPolicies.SubmitAsync.Get( () => this._throttler != null ? this._throttler.ExecuteAsync( action ) : action.Invoke() );
+				var response = await ActionPolicies.SubmitPolicyAsync( this._accountId ).Get( () => this._throttler != null ? this._throttler.ExecuteAsync( action ) : action.Invoke() );
 				ct.ThrowIfCancellationRequested();
 				return ( HttpWebResponse )response;
 			}

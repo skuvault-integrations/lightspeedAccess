@@ -6,6 +6,7 @@ namespace LightspeedAccess.Models.Request
 {
 	public class GetItemsRequest: LightspeedRequest, IRequestPagination
 	{
+		internal const int DefaultLimit = 50;
 		private readonly List< int > ItemIds;
 		private readonly List< string > ItemSkus;
 		private readonly int ShopId;
@@ -55,8 +56,8 @@ namespace LightspeedAccess.Models.Request
 
 		private void InitPagination()
 		{
-			Limit = 50;
-			Offset = 0;
+			this.Limit = DefaultLimit;
+			this.Offset = 0;
 		}
 
 		public GetItemsRequest( IEnumerable< int > ids )

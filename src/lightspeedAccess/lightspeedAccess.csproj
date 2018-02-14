@@ -49,6 +49,7 @@
     <Compile Include="LightspeedAuthService.cs" />
     <Compile Include="LightspeedFactory.cs" />
     <Compile Include="ILightspeedOrdersService.cs" />
+    <Compile Include="Misc\Extensions.cs" />
     <Compile Include="Misc\ItemListExtensions.cs" />
     <Compile Include="Misc\LightspeedException.cs" />
     <Compile Include="Misc\LightspeedGlobalThrottlingInfo.cs" />
@@ -96,6 +97,9 @@
     </Reference>
     <Reference Include="Netco">
       <HintPath>..\packages\Netco.1.5.1\lib\net45\Netco.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Net.Http" />
