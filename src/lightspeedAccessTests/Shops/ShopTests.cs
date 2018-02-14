@@ -83,5 +83,27 @@ namespace lightspeedAccessTests.Shops
 			Assert.Greater( task.Result.Count(), 0 );
 		}
 
+		[Test]
+		public void GetExistingItemsIdsAsyncTest()
+		{
+			var service = _factory.CreateShopsService( _config );
+			var cSource = new CancellationTokenSource();
+			var prepareTask = service.GetItems( 1, cSource.Token );
+			prepareTask.Wait();
+			var ids = prepareTask.Result.Select( p => p.ItemId ).ToList();
+			var fakeIds = new List< int > { -1, 99999990, 99999991, 99999992, 99999993, 99999994, 99999995 };
+			fakeIds.AddRange( ids );
+
+			var testTask = service.GetExistingItemsIdsAsync( fakeIds, cSource.Token );
+			testTask.Wait();
+			var resultIds = testTask.Result.ToList();
+
+			Assert.AreEqual( resultIds.Count, ids.Count );
+			ids.Sort();
+			resultIds.Sort();
+			for (int i = 0; i < resultIds.Count; i++)
+				Assert.AreEqual( resultIds[i], ids[i] );
+
+		}
 	}
 }

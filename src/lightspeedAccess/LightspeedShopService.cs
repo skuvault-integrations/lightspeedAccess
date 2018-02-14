@@ -116,7 +116,7 @@ namespace LightspeedAccess
 			return result;			
 		} 
 
-		public async Task< bool > DoesItemExist( int itemId, CancellationToken ctx )
+		public async Task< bool > DoesItemExistAsync( int itemId, CancellationToken ctx )
 		{
 			LightspeedLogger.Debug( string.Format( "Checking, if item {0} exists", itemId ), this._accountId );
 			var request = new GetItemRequest( itemId );
@@ -137,6 +137,34 @@ namespace LightspeedAccess
 		{
 			var getItemRequest = new GetItemsRequest( shopId );
 			return await this.ExecuteGetItemsRequest( getItemRequest, ctx );
+		}
+
+		public async Task< IEnumerable< int > > GetExistingItemsIdsAsync( List< int > itemIds, CancellationToken ctx )
+		{
+			LightspeedLogger.Debug( string.Format( "Checking, if items {0} exists", itemIds.ToJson() ), this._accountId );
+			var existingProducts = await this.GetItemsAsync( itemIds.ToHashSet(), ctx );
+			return existingProducts.Select( p => p.ItemId );
+		}
+
+		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( HashSet< int > itemIdsFull, CancellationToken ctx )
+		{
+			LightspeedLogger.Debug( "Started getting products by IDs", this._accountId );
+
+			if( itemIdsFull.Count == 0 )
+				return new List< LightspeedProduct >();
+
+			var result = new List< LightspeedProduct >();
+			var itemIdsPartitioned = itemIdsFull.ToList().Partition( GetItemsRequest.DefaultLimit );
+			foreach( var itemIds in itemIdsPartitioned )
+			{
+				var getItemsRequest = new GetItemsRequest( itemIds );
+				var response = await this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx );
+				if( response?.Item?.Length > 0 )
+					result.AddRange( response.Item );
+			}
+
+			LightspeedLogger.Debug( string.Format( "Got {0} products by IDs", result.Count ), this._accountId );
+			return result;
 		}
 
 		public ShopOrder MakeOrderRequest< T >( string endpoint, string token, T body, string method ) where T : ShopOrderBase
