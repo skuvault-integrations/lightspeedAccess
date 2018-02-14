@@ -159,7 +159,7 @@ namespace LightspeedAccess
 			{
 				var getItemsRequest = new GetItemsRequest( itemIds );
 				var response = await this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx );
-				if( response?.Item?.Length > 0 )
+				if( response != null && response.Item != null && response.Item.Length > 0 )
 					result.AddRange( response.Item );
 			}
 
