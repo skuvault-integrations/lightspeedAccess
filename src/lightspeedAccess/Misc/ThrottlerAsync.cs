@@ -153,7 +153,7 @@ namespace LightspeedAccess.Misc
 
 			var timeForDelay = Convert.ToInt32( Math.Ceiling( ( this._requestCost - remainingQuota.RemainingQuantity ) / remainingQuota.DripRate ) );
 
-			LightspeedLogger.Debug( $"Throttler: quota exceeded. Waiting {timeForDelay} seconds...", ( int )this._accountId );
+			LightspeedLogger.Debug( string.Format( "Throttler: quota exceeded. Waiting {0} seconds...", timeForDelay ), ( int )this._accountId );
 			await Task.Delay( timeForDelay );
 			LightspeedLogger.Debug( "Throttler: Resuming...", (int)this._accountId );			
 		}
