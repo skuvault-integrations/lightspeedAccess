@@ -12,7 +12,7 @@ namespace LightspeedAccess.Misc
 {
 	public sealed class ThrottlerAsync
 	{
-		private readonly int _maxQuota;
+		private readonly ThrottlingInfoItem _maxQuota;
 		private readonly long _accountId;
 		private readonly Func< Task > _delay;
 		private readonly Func<Task> _delayOnThrottlingException;
@@ -125,47 +125,52 @@ namespace LightspeedAccess.Misc
 			return webException.Response is HttpWebResponse && ( ( HttpWebResponse )webException.Response ).StatusCode == ( HttpStatusCode )429;
 		}
 
-		private int GetRemainingQuota()
+		private ThrottlingInfoItem GetRemainingQuota()
 		{
-			int remainingQuota;
-			if( !LightspeedGlobalThrottlingInfo.GetThrottlingInfo( this._accountId, out remainingQuota ) )
-				remainingQuota = this._maxQuota;
-			return remainingQuota;
+			ThrottlingInfoItem info;
+			if( !LightspeedGlobalThrottlingInfo.GetThrottlingInfo( this._accountId, out info ) )
+				info = this._maxQuota;
+			return info;
 		}
 
-		private void SetRemainingQuota( int quota )
+		private void SetRemainingQuota( int quota, float dripRate )
 		{
-			LightspeedGlobalThrottlingInfo.AddThrottlingInfo( this._accountId, quota );
+			LightspeedGlobalThrottlingInfo.AddThrottlingInfo( this._accountId, new ThrottlingInfoItem( quota, dripRate ) );
 		}
 
 		private async Task WaitIfNeededAsync()
 		{
 			var remainingQuota = this.GetRemainingQuota();
 			LightspeedLogger.Debug( string.Format( "Current quota for account {0} is: {1}", this._accountId, remainingQuota ), (int)this._accountId );
-			if( remainingQuota > QuotaThreshold )
+
+			if( remainingQuota.RemainingQuantity > this._requestCost )
 			{
-				remainingQuota = remainingQuota - this._requestCost;
-				this.SetRemainingQuota( remainingQuota > 0 ? remainingQuota : 0 );
+				// we set new remaining quota for case potential error (this is strange, but it worked so long time)
+				remainingQuota = new ThrottlingInfoItem( remainingQuota.RemainingQuantity - this._requestCost, remainingQuota.DripRate );
+				this.SetRemainingQuota( remainingQuota.RemainingQuantity > 0 ? remainingQuota.RemainingQuantity : 0, remainingQuota.DripRate );
 				return;
 			}
 
-			LightspeedLogger.Debug( "Throttler: quota exceeded. Waiting...", (int)this._accountId );
-			await this._delay();
+			var timeForDelay = Convert.ToInt32( Math.Ceiling( ( this._requestCost - remainingQuota.RemainingQuantity ) / remainingQuota.DripRate ) );
+
+			LightspeedLogger.Debug( $"Throttler: quota exceeded. Waiting {timeForDelay} seconds...", ( int )this._accountId );
+			await Task.Delay( timeForDelay );
 			LightspeedLogger.Debug( "Throttler: Resuming...", (int)this._accountId );			
 		}
 
 		private void SubtractQuota< TResult >( TResult result )
 		{
 			ResponseLeakyBucketMetadata bucketMetadata;
-			LightspeedLogger.Debug( "Throttler: trying to get leaky bucket metadata from response", (int)this._accountId );
+			LightspeedLogger.Debug( "Throttler: trying to get leaky bucket metadata from response", ( int )this._accountId );
 			if( QuotaParser.TryParseQuota( result, out bucketMetadata ) )
 			{
-				LightspeedLogger.Debug( string.Format( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed ), (int)this._accountId );
+				LightspeedLogger.Debug( string.Format( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}. Drip rate: {2}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed, bucketMetadata.dripRate ), ( int )this._accountId );
 				var quotaDelta = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
-				this.SetRemainingQuota( quotaDelta > 0 ? quotaDelta : 0 );
+				this.SetRemainingQuota( quotaDelta > 0 ? quotaDelta : 0, bucketMetadata.dripRate );
 			}
 
-			LightspeedLogger.Debug( string.Format( "Throttler: substracted quota, now available {0}", this.GetRemainingQuota() ), (int)this._accountId );
+			var remainingQuota = this.GetRemainingQuota();
+			LightspeedLogger.Debug( string.Format( "Throttler: substracted quota, now available {0}, drip rate {1}", remainingQuota.RemainingQuantity, remainingQuota.DripRate ), ( int )this._accountId );
 		}
 
 		public class ThrottlerException: Exception

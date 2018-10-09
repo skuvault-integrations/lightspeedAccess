@@ -4,5 +4,6 @@
 	{
 		public int quotaSize;
 		public int quotaUsed;
+		public float dripRate;
 	}
 }

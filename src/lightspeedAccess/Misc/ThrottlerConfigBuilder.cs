@@ -5,7 +5,7 @@ namespace lightspeedAccess.Misc
 {
 	class ThrottlerConfigBuilder
 	{
-		private int _maxQuota;
+		private ThrottlingInfoItem _maxQuota;
 		private Func<Task> _delay;
 		private int _maxRetryCount;
 		private readonly long _accountId;
@@ -17,9 +17,9 @@ namespace lightspeedAccess.Misc
 			this._accountId = accountId;
 		}
 
-		public ThrottlerConfigBuilder SetMaxQuota( int maxQuota )
+		public ThrottlerConfigBuilder SetMaxQuota( int maxQuota, float dripRate )
 		{
-			this._maxQuota = maxQuota;
+			this._maxQuota = new ThrottlingInfoItem( maxQuota, dripRate );
 			return this;
 		}
 

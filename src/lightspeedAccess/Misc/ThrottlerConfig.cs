@@ -8,7 +8,7 @@ namespace lightspeedAccess.Misc
 {
 	public class ThrottlerConfig
 	{
-		public readonly int _maxQuota;
+		public readonly ThrottlingInfoItem _maxQuota;
 		public readonly Func< Task > _delay;
 		public readonly int _maxRetryCount;
 		public readonly long _accountId;
@@ -22,7 +22,7 @@ namespace lightspeedAccess.Misc
 			builder
 				.SetDelayFunc( () => Task.Delay( 60 * 1000 ) )
 				.SetDelayFuncOnThrottlingExceptions( () => Task.Delay( 180 * 1000 ) )
-				.SetMaxQuota( LightspeedThrottlingDefaults.LightspeedBucketSize )
+				.SetMaxQuota( LightspeedThrottlingDefaults.LightspeedBucketSize, LightspeedThrottlingDefaults.LightspeedDripRate )
 				.SetMaxRetryCount( 40 )
 				.SetRequestCost( LightspeedThrottlingDefaults.ReadRequestCost );
 
@@ -41,7 +41,7 @@ namespace lightspeedAccess.Misc
 			return builder.Build();
 		}
 
-		public ThrottlerConfig( int maxQuota, int maxRetryCount, Func<Task> delay, long accountId, int requestCost, Func< Task > delayOnThrottlingException )
+		public ThrottlerConfig( ThrottlingInfoItem maxQuota, int maxRetryCount, Func<Task> delay, long accountId, int requestCost, Func< Task > delayOnThrottlingException )
 		{
 			this._maxQuota = maxQuota;
 			this._maxRetryCount = maxRetryCount;

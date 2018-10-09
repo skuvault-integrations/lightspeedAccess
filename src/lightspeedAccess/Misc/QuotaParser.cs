@@ -24,8 +24,20 @@ namespace lightspeedAccess.Misc
 			metadata = new ResponseLeakyBucketMetadata
 			{
 				quotaSize = hypotheticQuotaSize,
-				quotaUsed = ( int ) hypotheticQuotaUsed
+				quotaUsed = ( int )hypotheticQuotaUsed,
+				dripRate = 1
 			};
+
+			var dripRateHeader = rawResponse.Headers[ "X-LS-API-Drip-Rate" ];
+			if( !string.IsNullOrWhiteSpace( dripRateHeader ) )
+			{
+				float dripRate;
+				if( !float.TryParse( dripRateHeader, out dripRate ) )
+					dripRate = 1;
+
+				metadata.dripRate = dripRate > 0 ? dripRate : 1;
+			}
+
 			return true;
 		}
 	}
