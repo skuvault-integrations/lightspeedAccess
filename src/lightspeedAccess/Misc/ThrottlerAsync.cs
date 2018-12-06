@@ -17,9 +17,9 @@ namespace LightspeedAccess.Misc
 		private readonly Func<Task> _delayOnThrottlingException;
 		private readonly int _maxRetryCount;
 		private readonly int _requestCost;
-	    private readonly ActionPolicyAsync _throttlerActionPolicy;
+		private readonly ActionPolicyAsync _throttlerActionPolicy;
 
-        private const int QuotaThreshold = 30;
+		private const int QuotaThreshold = 30;
 
 		public ThrottlerAsync(ThrottlerConfig config)
 		{
