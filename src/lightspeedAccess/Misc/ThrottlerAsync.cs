@@ -6,7 +6,6 @@ using lightspeedAccess.Models.Common;
 using Netco.ActionPolicyServices;
 using System.IO;
 using System.Runtime.ExceptionServices;
-using lightspeedAccess;
 
 namespace LightspeedAccess.Misc
 {
@@ -18,8 +17,9 @@ namespace LightspeedAccess.Misc
 		private readonly Func<Task> _delayOnThrottlingException;
 		private readonly int _maxRetryCount;
 		private readonly int _requestCost;
+	    private readonly ActionPolicyAsync _throttlerActionPolicy;
 
-		private const int QuotaThreshold = 30;
+        private const int QuotaThreshold = 30;
 
 		public ThrottlerAsync( ThrottlerConfig config )
 		{
@@ -32,52 +32,46 @@ namespace LightspeedAccess.Misc
 
 			this._throttlerActionPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( this._maxRetryCount, async ( ex, i ) =>
 			{
-				if( !this.IsExceptionFromThrottling( ex ) )
+                if (this.IsExceptionFromThrottling(ex))
+                {
+                    LightspeedLogger.Debug("Throttler: got throttling exception. Retrying...", (int)this._accountId);
+                    await this._delayOnThrottlingException();
+                }
+				else
 				{
-					var errMessage = string.Format( "Throttler: faced non-throttling exception: {0}", ex.Message );
+					var errMessage = $"Throttler: faced non-throttling exception: {ex.Message}";
 					LightspeedLogger.Debug( errMessage, (int)this._accountId );
 
-					if( LightspeedAuthService.IsUnauthorizedException( ex ) )
+				    if( ex is WebException webException && webException.Response is HttpWebResponse response)
 					{
-						throw ex;
-					}
+                        if (response.StatusCode == HttpStatusCode.Unauthorized)
+                        {
+                            throw ex;
+                        }
 
-					var webException = ex as WebException;
-					if( webException != null )
-					{
-						var response = webException.Response as HttpWebResponse;
-						if( response == null )
-							throw new LightspeedException( errMessage, ex );
+					    try
+                        {
+                            string responseText = this.SetResponseText(response, errMessage);
 
-						string responseText = null;
-						try
-						{
-							using( var reader = new StreamReader( response.GetResponseStream() ) )
-							{
-								responseText = reader.ReadToEnd();
-							}
-						}
-						catch
-						{
-						}
-						if( !string.IsNullOrWhiteSpace( responseText ) )
-							throw new LightspeedException( responseText, ex );
+                            throw new LightspeedException(responseText, ex);
+
+                        }
+                        catch
+                        {
+                            throw new LightspeedException(errMessage, ex);
+                        }
+
 					}
 
 					throw new LightspeedException( errMessage, ex);
 				}
-				LightspeedLogger.Debug( "Throttler: got throttling exception. Retrying...", (int)this._accountId );
-				await this._delayOnThrottlingException();
-			})
-			;
+			});
 		}
 
 		// default throttler that implements Lightspeed leaky bucket
 		public ThrottlerAsync( long accountId ): this( ThrottlerConfig.CreateDefault( accountId ) )
 		{
 		}
-
-		private readonly ActionPolicyAsync _throttlerActionPolicy; 
  
 		public async Task< TResult > ExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
 		{
@@ -116,19 +110,32 @@ namespace LightspeedAccess.Misc
 
 		private bool IsExceptionFromThrottling( Exception exception )
 		{
-			if( !( exception is WebException ) )
-				return false;
-			var webException = ( WebException ) exception;
-			if( webException.Status != WebExceptionStatus.ProtocolError )
-				return false;
+            return exception is WebException webException
+                   && webException.Status == WebExceptionStatus.ProtocolError
+                   && webException.Response is HttpWebResponse response
+                   && response.StatusCode == (HttpStatusCode)429;
+        }
 
-			return webException.Response is HttpWebResponse && ( ( HttpWebResponse )webException.Response ).StatusCode == ( HttpStatusCode )429;
-		}
+        private string SetResponseText(HttpWebResponse response, string errMessage)
+        {
+            string responseText;
+
+            using (var reader = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = reader.ReadToEnd();
+            }
+
+            if (string.IsNullOrWhiteSpace(responseText))
+            {
+                responseText = errMessage;
+            }
+
+            return responseText;
+        }
 
 		private ThrottlingInfoItem GetRemainingQuota()
 		{
-			ThrottlingInfoItem info;
-			if( !LightspeedGlobalThrottlingInfo.GetThrottlingInfo( this._accountId, out info ) )
+			if( !LightspeedGlobalThrottlingInfo.GetThrottlingInfo( this._accountId, out ThrottlingInfoItem info ) )
 				info = this._maxQuota;
 			return info;
 		}
@@ -141,7 +148,7 @@ namespace LightspeedAccess.Misc
 		private async Task WaitIfNeededAsync()
 		{
 			var remainingQuota = this.GetRemainingQuota();
-			LightspeedLogger.Debug( string.Format( "Current quota for account {0} is: {1}", this._accountId, remainingQuota ), (int)this._accountId );
+			LightspeedLogger.Debug( $"Current quota remaining for account {this._accountId} is: {remainingQuota.RemainingQuantity}", (int)this._accountId );
 
 			if( remainingQuota.RemainingQuantity > this._requestCost )
 			{
@@ -151,26 +158,26 @@ namespace LightspeedAccess.Misc
 				return;
 			}
 
-			var timeForDelay = Convert.ToInt32( Math.Ceiling( ( this._requestCost - remainingQuota.RemainingQuantity ) / remainingQuota.DripRate ) );
+			var secondsForDelay = Convert.ToInt32( Math.Ceiling( ( this._requestCost - remainingQuota.RemainingQuantity ) / remainingQuota.DripRate ) );
+            var millisecondsForDelay = secondsForDelay * 1000;
 
-			LightspeedLogger.Debug( string.Format( "Throttler: quota exceeded. Waiting {0} seconds...", timeForDelay ), ( int )this._accountId );
-			await Task.Delay( timeForDelay );
+			LightspeedLogger.Debug( $"Throttler: quota exceeded. Waiting {secondsForDelay} seconds...", ( int )this._accountId );
+			await Task.Delay(millisecondsForDelay);
 			LightspeedLogger.Debug( "Throttler: Resuming...", (int)this._accountId );			
 		}
 
 		private void SubtractQuota< TResult >( TResult result )
 		{
-			ResponseLeakyBucketMetadata bucketMetadata;
 			LightspeedLogger.Debug( "Throttler: trying to get leaky bucket metadata from response", ( int )this._accountId );
-			if( QuotaParser.TryParseQuota( result, out bucketMetadata ) )
+			if( QuotaParser.TryParseQuota( result, out ResponseLeakyBucketMetadata bucketMetadata ) )
 			{
-				LightspeedLogger.Debug( string.Format( "Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}. Drip rate: {2}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed, bucketMetadata.dripRate ), ( int )this._accountId );
+				LightspeedLogger.Debug( $"Throttler: parsed leaky bucket metadata from response. Bucket size: {bucketMetadata.quotaSize}. Used: {bucketMetadata.quotaUsed}. Drip rate: {bucketMetadata.dripRate}", ( int )this._accountId );
 				var quotaDelta = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
 				this.SetRemainingQuota( quotaDelta > 0 ? quotaDelta : 0, bucketMetadata.dripRate );
 			}
 
 			var remainingQuota = this.GetRemainingQuota();
-			LightspeedLogger.Debug( string.Format( "Throttler: substracted quota, now available {0}, drip rate {1}", remainingQuota.RemainingQuantity, remainingQuota.DripRate ), ( int )this._accountId );
+			LightspeedLogger.Debug( $"Throttler: subtracted quota, now available {remainingQuota.RemainingQuantity}, drip rate {remainingQuota.DripRate}", ( int )this._accountId );
 		}
 
 		public class ThrottlerException: Exception
