@@ -21,7 +21,7 @@ namespace LightspeedAccess.Misc
 
         private const int QuotaThreshold = 30;
 
-		public ThrottlerAsync( ThrottlerConfig config )
+		public ThrottlerAsync(ThrottlerConfig config)
 		{
 			this._maxQuota = config._maxQuota;
 			this._delay = config._delay;
@@ -30,41 +30,41 @@ namespace LightspeedAccess.Misc
 			this._requestCost = config._requestCost;
 			this._delayOnThrottlingException = config._delayOnThrottlingException;
 
-			this._throttlerActionPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( this._maxRetryCount, async ( ex, i ) =>
+			this._throttlerActionPolicy = ActionPolicyAsync.Handle<Exception>().RetryAsync(this._maxRetryCount, async (ex, i) =>
 			{
-                if (this.IsExceptionFromThrottling(ex))
-                {
-                    LightspeedLogger.Debug("Throttler: got throttling exception. Retrying...", (int)this._accountId);
-                    await this._delayOnThrottlingException();
-                }
-				else
-				{
-					var errMessage = $"Throttler: faced non-throttling exception: {ex.Message}";
-					LightspeedLogger.Debug( errMessage, (int)this._accountId );
+				if (this.IsExceptionFromThrottling(ex))
+				 {
+					 LightspeedLogger.Debug("Throttler: got throttling exception. Retrying...", (int)this._accountId);
+					 await this._delayOnThrottlingException();
+				 }
+				 else
+				 {
+					 var errMessage = $"Throttler: faced non-throttling exception: {ex.Message}";
+					 LightspeedLogger.Debug(errMessage, (int)this._accountId);
 
-				    if( ex is WebException webException && webException.Response is HttpWebResponse response)
-					{
-                        if (response.StatusCode == HttpStatusCode.Unauthorized)
-                        {
-                            throw ex;
-                        }
+					 var response = (ex as WebException)?.Response as HttpWebResponse;
+					 if (response != null)
+					 {
+						 if (response.StatusCode == HttpStatusCode.Unauthorized)
+						 {
+							 throw ex;
+						 }
 
-					    try
-                        {
-                            string responseText = this.SetResponseText(response, errMessage);
+						 try
+						 {
+							 string responseText = this.SetResponseText(response, errMessage);
 
-                            throw new LightspeedException(responseText, ex);
+							 throw new LightspeedException(responseText, ex);
 
-                        }
-                        catch
-                        {
-                            throw new LightspeedException(errMessage, ex);
-                        }
+						 }
+						 catch
+						 {
+							 throw new LightspeedException(errMessage, ex);
+						 }
+					 }
 
-					}
-
-					throw new LightspeedException( errMessage, ex);
-				}
+					 throw new LightspeedException(errMessage, ex);
+				 }
 			});
 		}
 
@@ -110,9 +110,11 @@ namespace LightspeedAccess.Misc
 
 		private bool IsExceptionFromThrottling( Exception exception )
 		{
-            return exception is WebException webException
+			var webException = exception as WebException;
+			var response = webException?.Response as HttpWebResponse;
+
+			return response != null
                    && webException.Status == WebExceptionStatus.ProtocolError
-                   && webException.Response is HttpWebResponse response
                    && response.StatusCode == (HttpStatusCode)429;
         }
 
