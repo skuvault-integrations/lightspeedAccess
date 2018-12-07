@@ -42,24 +42,29 @@ namespace LightspeedAccess.Misc
 					 var errMessage = string.Format("Throttler: faced non-throttling exception: {0}", ex.Message);
 					 LightspeedLogger.Debug(errMessage, (int)this._accountId);
 
-					 var response = (ex as WebException)?.Response as HttpWebResponse;
-					 if (response != null)
+					 var webException = ex as WebException;
+
+					 if (webException != null)
 					 {
-						 if (response.StatusCode == HttpStatusCode.Unauthorized)
+						 var response = webException.Response as HttpWebResponse;
+						 if (response != null)
 						 {
-							 throw ex;
-						 }
+							 if (response.StatusCode == HttpStatusCode.Unauthorized)
+							 {
+								 throw ex;
+							 }
 
-						 try
-						 {
-							 string responseText = this.SetResponseText(response, errMessage);
+							 try
+							 {
+								 string responseText = this.SetResponseText(response, errMessage);
 
-							 throw new LightspeedException(responseText, ex);
+								 throw new LightspeedException(responseText, ex);
 
-						 }
-						 catch
-						 {
-							 throw new LightspeedException(errMessage, ex);
+							 }
+							 catch
+							 {
+								 throw new LightspeedException(errMessage, ex);
+							 }
 						 }
 					 }
 
@@ -111,7 +116,7 @@ namespace LightspeedAccess.Misc
 		private bool IsExceptionFromThrottling( Exception exception )
 		{
 			var webException = exception as WebException;
-			var response = webException?.Response as HttpWebResponse;
+			var response = webException != null ? webException.Response as HttpWebResponse : null;
 
 			return response != null
                    && webException.Status == WebExceptionStatus.ProtocolError
@@ -137,7 +142,8 @@ namespace LightspeedAccess.Misc
 
 		private ThrottlingInfoItem GetRemainingQuota()
 		{
-			if( !LightspeedGlobalThrottlingInfo.GetThrottlingInfo( this._accountId, out ThrottlingInfoItem info ) )
+			ThrottlingInfoItem info;
+			if( !LightspeedGlobalThrottlingInfo.GetThrottlingInfo( this._accountId, out info ) )
 				info = this._maxQuota;
 			return info;
 		}
@@ -171,7 +177,9 @@ namespace LightspeedAccess.Misc
 		private void SubtractQuota< TResult >( TResult result )
 		{
 			LightspeedLogger.Debug( "Throttler: trying to get leaky bucket metadata from response", ( int )this._accountId );
-			if( QuotaParser.TryParseQuota( result, out ResponseLeakyBucketMetadata bucketMetadata ) )
+
+			ResponseLeakyBucketMetadata bucketMetadata;
+			if( QuotaParser.TryParseQuota( result, out bucketMetadata ) )
 			{
 				LightspeedLogger.Debug(string.Format("Throttler: parsed leaky bucket metadata from response. Bucket size: {0}. Used: {1}. Drip rate: {2}", bucketMetadata.quotaSize, bucketMetadata.quotaUsed, bucketMetadata.dripRate), ( int )this._accountId );
 				var quotaDelta = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
