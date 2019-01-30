@@ -7,13 +7,15 @@ namespace LightspeedAccess.Models.Request
 	public class GetItemsRequest: LightspeedRequest, IRequestPagination
 	{
 		internal const int DefaultLimit = 50;
+
 		private readonly List< int > ItemIds;
 		private readonly List< string > ItemSkus;
 		private readonly int ShopId;
 		private readonly DateTime? createTimeUtc;
 
-		public int Limit{ get; private set; }
-		public int Offset{ get; private set; }
+		private int Limit{ get; set; }
+		private int Offset{ get; set; }
+		private ArchivedOptionEnum ArchivedOption{ get; set; }
 
 		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
 		{
@@ -22,19 +24,19 @@ namespace LightspeedAccess.Models.Request
 
 		private Dictionary< LightspeedRequestPathParam, string > GetMainPathParams()
 		{
-			if( ItemIds != null )
+			if( this.ItemIds != null )
 			{
-				if( ItemIds.Count != 0 )
-					return new Dictionary< LightspeedRequestPathParam, string > { { LightspeedRequestPathParam.ItemId, LightspeedIdRangeBuilder.GetIdRangeParam( ItemIds ) } };
+				if( this.ItemIds.Count != 0 )
+					return new Dictionary< LightspeedRequestPathParam, string > { { LightspeedRequestPathParam.ItemId, LightspeedIdRangeBuilder.GetIdRangeParam( this.ItemIds ) } };
 			}
 
-			if( ItemSkus != null )
+			if( this.ItemSkus != null )
 			{
-				if( ItemSkus.Count != 0 )
-					return new Dictionary< LightspeedRequestPathParam, string > { { LightspeedRequestPathParam.Or, LightspeedSkuRangeBuilder.GetIdRangeParam( ItemSkus ) }, { LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\"]" } };
+				if( this.ItemSkus.Count != 0 )
+					return new Dictionary< LightspeedRequestPathParam, string > { { LightspeedRequestPathParam.Or, LightspeedSkuRangeBuilder.GetIdRangeParam( this.ItemSkus ) }, { LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\"]" } };
 			}
 
-			if( ShopId != 0 )
+			if( this.ShopId != 0 )
 			{
 				var pathParams = new Dictionary<LightspeedRequestPathParam, string> { { LightspeedRequestPathParam.ShopId, this.ShopId.ToString() }, { LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\"]" } };
 				if( this.createTimeUtc != null )
@@ -50,37 +52,42 @@ namespace LightspeedAccess.Models.Request
 			var initialParams = this.GetMainPathParams();
 			initialParams.Add( LightspeedRequestPathParam.Limit, this.Limit.ToString() );
 			initialParams.Add( LightspeedRequestPathParam.Offset, this.Offset.ToString() );
+			if( this.ArchivedOption != ArchivedOptionEnum.Undefined )
+			{
+				initialParams.Add( LightspeedRequestPathParam.Archived, this.ArchivedOption.ToString().ToLowerInvariant() );
+			}
 
 			return initialParams;
 		}
 
-		private void InitPagination()
+		private void InitRequest()
 		{
 			this.Limit = DefaultLimit;
 			this.Offset = 0;
+			this.ArchivedOption = ArchivedOptionEnum.Undefined;
 		}
 
 		public GetItemsRequest( IEnumerable< int > ids )
 		{
-			this.InitPagination();
-			ItemIds = ids.ToList();
+			this.InitRequest();
+			this.ItemIds = ids.ToList();
 		}
 
 		public GetItemsRequest( IEnumerable< string > skus )
 		{
-			this.InitPagination();
-			ItemSkus = skus.ToList();
+			this.InitRequest();
+			this.ItemSkus = skus.ToList();
 		}
 
 		public GetItemsRequest( int shopId )
 		{
-			this.InitPagination();
-			ShopId = shopId;
+			this.InitRequest();
+			this.ShopId = shopId;
 		}
 
 		public GetItemsRequest( int shopId, DateTime createTimeUtc )
 		{
-			this.InitPagination();
+			this.InitRequest();
 			this.ShopId = shopId;
 			this.createTimeUtc = createTimeUtc;
 		}
@@ -92,7 +99,7 @@ namespace LightspeedAccess.Models.Request
 
 		public void SetOffset( int offset )
 		{
-			Offset = offset;
+			this.Offset = offset;
 		}
 
 		public int GetOffset()
@@ -104,9 +111,18 @@ namespace LightspeedAccess.Models.Request
 		{
 			return this.Limit;
 		}
-	}
 
-	public class SucessApiResponse
-	{
+		public void SetArchivedOptionEnum( ArchivedOptionEnum archived )
+		{
+			this.ArchivedOption = archived;
+		}
+
+		public enum ArchivedOptionEnum
+		{
+			Undefined,
+			True, 
+			False, 
+			Only
+		}
 	}
 }

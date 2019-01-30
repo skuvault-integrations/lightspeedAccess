@@ -78,6 +78,7 @@ namespace LightspeedAccess.Models.Request
 		public static readonly LightspeedRequestPathParam CustomSku = new LightspeedRequestPathParam( "customSku" );
 		public static readonly LightspeedRequestPathParam Completed = new LightspeedRequestPathParam( "completed" );
 		public static readonly LightspeedRequestPathParam ShopId = new LightspeedRequestPathParam( "ItemShops.shopID" );
+		public static readonly LightspeedRequestPathParam Archived = new LightspeedRequestPathParam( "archived" );
 
 		public string Param{ get; private set; }
 

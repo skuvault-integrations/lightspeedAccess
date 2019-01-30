@@ -211,7 +211,7 @@ namespace LightspeedAccess.Services
 
 			var numPages = paginatedResponse.GetCount() / paginatedRequest.GetLimit() + 1;
 
-			LightspeedLogger.Debug( string.Format( "Expected number of pages for request {0} : {2}", r, numPages ), this._accountId );
+			LightspeedLogger.Debug( string.Format( "Expected number of pages for request {0} : {1}", r, numPages ), this._accountId );
 			for( int pageNum = 1; pageNum < numPages; pageNum++ )
 			{
 				LightspeedLogger.Debug( string.Format( "Processing page {0} for request {1}...", numPages, r ), this._accountId );

@@ -83,6 +83,7 @@ namespace LightspeedAccess
 			itemIdsPartitioned.ForEach( itemIds =>
 			{
 				var getItemsRequest = new GetItemsRequest( itemIds );
+				getItemsRequest.SetArchivedOptionEnum( GetItemsRequest.ArchivedOptionEnum.True );
 
 				var response = this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest );
 				if( response.Item != null )
@@ -154,8 +155,10 @@ namespace LightspeedAccess
 			var tasks = itemIdsPartitioned.Select( itemIds =>
 			{
 				var getItemsRequest = new GetItemsRequest( itemIds );
+				getItemsRequest.SetArchivedOptionEnum( GetItemsRequest.ArchivedOptionEnum.True );
+
 				return this._webRequestServices.GetResponseAsync< LightspeedProductList >( getItemsRequest, ctx );
-			} );
+			} ).ToArray();
 			await Task.WhenAll( tasks );
 			var result = tasks.SelectMany( t => t.Result.Item ?? new LightspeedProduct[ 0 ] ).ToList();
 
