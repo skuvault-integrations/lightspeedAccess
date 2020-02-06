@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 [ assembly : AssemblyTitle( "LigthspeedAccess" ) ]
 [ assembly : AssemblyDescription( "" ) ]
 [ assembly : AssemblyConfiguration( "" ) ]
-[ assembly : AssemblyCompany( "Microsoft" ) ]
+[ assembly : AssemblyCompany("SkuVault")]
 [ assembly : AssemblyProduct( "LightspeedAccess.Properties" ) ]
-[ assembly : AssemblyCopyright( "Copyright © Microsoft 2015" ) ]
+[ assembly : AssemblyCopyright("Copyright © SkuVault 2020")]
 [ assembly : AssemblyTrademark( "" ) ]
 [ assembly : AssemblyCulture( "" ) ]
 
@@ -33,5 +33,5 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 
-[assembly: AssemblyVersion( "1.0.64.0" )]
-[assembly: AssemblyFileVersion( "1.0.64.0" )]
+[assembly: AssemblyVersion("1.1.4.0")]
+[assembly: AssemblyFileVersion("1.1.4.0")]
