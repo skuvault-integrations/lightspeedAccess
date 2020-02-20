@@ -17,5 +17,14 @@ namespace LightspeedAccess.Models.Order
 
 		[ XmlElement( "itemID" ) ]
 		public int ItemId{ get; set; }
+
+		[ XmlElement( "calcLineDiscount" ) ]
+		public LightspeedMoneyType CalcLineDiscount { get; set; }
+
+		[ XmlElement( "calcTax1" ) ]
+		public LightspeedMoneyType CalcTax1 { get; set; }
+
+		[ XmlElement( "calcTax2" ) ]
+		public LightspeedMoneyType CalcTax2 { get; set; }
 	}
 }

@@ -39,6 +39,15 @@ namespace LightspeedAccess.Models.Order
 		public int ShopId{ get; set; }
 
 		public string ShopName{ get; set; }
+
+		[ XmlElement( "calcDiscount" ) ]
+		public LightspeedMoneyType CalcDiscount { get; set; }
+
+		[ XmlElement( "calcTax1" ) ]
+		public LightspeedMoneyType CalcTax1 { get; set; }
+
+		[ XmlElement( "calcTax2" ) ]
+		public LightspeedMoneyType CalcTax2 { get; set; }
 	}
 
 	[ XmlRoot( "Sales", Namespace = "", IsNullable = false ) ]
