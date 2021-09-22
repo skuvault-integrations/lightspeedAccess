@@ -72,13 +72,13 @@ task NuGet Package, Version, {
 		<projectUrl>https://github.com/agileharbor/$project_name</projectUrl>
 		<licenseUrl>https://raw.github.com/agileharbor/$project_name/master/License.txt</licenseUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<copyright>Copyright (C) SkuVault Inc. 2020</copyright>
+		<copyright>Copyright (C) SkuVault Inc. 2021</copyright>
 		<summary>$text</summary>
 		<description>$text</description>
 		<tags>$project_short_name</tags>
 		<dependencies> 
-			<group targetFramework="net45">
-				<dependency id="Netco" version="1.4.3" />
+			<group targetFramework="net48">
+				<dependency id="Netco" version="2.0.2" />
 				<dependency id="CuttingEdge.Conditions" version="1.2.0.0" />
 			</group>
 		</dependencies>
