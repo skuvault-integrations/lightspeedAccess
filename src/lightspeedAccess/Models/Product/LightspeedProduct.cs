@@ -128,6 +128,7 @@ namespace LightspeedAccess.Models.Product
 		public int ItemShopId{ get; set; }
 
 		[ XmlElement( "qoh" ) ]
+		[ DataMember( Order = 4 ) ]		//Needed for caching
 		public int QuantityOnHand{ get; set; }
 	}
 
