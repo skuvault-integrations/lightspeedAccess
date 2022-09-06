@@ -34,6 +34,11 @@ namespace LightspeedAccess
 			return new LightspeedShopService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
 		}
 
+		public ILightspeedProductsService CreateProductsService( LightspeedConfig config )
+		{
+			return new LightspeedProductsService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
+		}
+		
 		public IAccountService CreateAccountsService( LightspeedConfig config )
 		{
 			return new AccountService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );

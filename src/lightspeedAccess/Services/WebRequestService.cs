@@ -151,7 +151,7 @@ namespace LightspeedAccess.Services
 
 				var result = ( T ) deserializer.Deserialize( stream );
 
-				LightspeedLogger.Debug( string.Format( "Successfylly deserialized response for request {0}. Response: {1}", request, result.ToJson() ), this._accountId );
+				LightspeedLogger.Debug( string.Format( "Successfully deserialized response for request {0}. Response: {1}", request, result.ToJson() ), this._accountId );
 				var possibleAdditionalResponses = await this.IterateThroughPaginationAsync( request, result, ctx );
 
 				var aggregatedResult = result as IPaginatedResponse;
