@@ -18,5 +18,8 @@ namespace LightspeedAccess.Models.Product
 		[ XmlElement( "attribute3" ) ]
 		[ DataMember( Order = 3 ) ]
 		public string Attribute3{ get; set; }
+		
+		[ DataMember( Order = 4 ) ]
+		public ItemAttributeSet ItemAttributeSet{ get; set; }
 	}
 }

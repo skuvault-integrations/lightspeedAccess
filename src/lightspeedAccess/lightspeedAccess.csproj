@@ -71,6 +71,7 @@
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Misc\QuotaParser.cs" />
     <Compile Include="Models\Product\ItemAttributes.cs" />
+    <Compile Include="Models\Product\ItemAttributeSet.cs" />
     <Compile Include="Models\Product\ItemImage.cs" />
     <Compile Include="Models\Product\ItemPrice.cs" />
     <Compile Include="Models\Product\LightspeedProduct.cs" />
