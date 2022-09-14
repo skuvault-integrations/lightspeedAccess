@@ -9,7 +9,6 @@ namespace LightspeedAccess.Models.Request
 		internal const int DefaultLimit = 50;
 
 		private readonly int ShopId;
-		private readonly DateTime? createTimeUtc;
 
 		private int Limit{ get; set; }
 		private int Offset{ get; set; }
@@ -24,9 +23,11 @@ namespace LightspeedAccess.Models.Request
 		{
 			if( this.ShopId != 0 )
 			{
-				var pathParams = new Dictionary<LightspeedRequestPathParam, string> { { LightspeedRequestPathParam.ShopId, this.ShopId.ToString() }, { LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\"]" } };
-				if( this.createTimeUtc != null )
-					pathParams.Add( LightspeedRequestPathParam.TimeStamp, LightspeedGreaterThanBuilder.GetDateGreaterParam( this.createTimeUtc.Value ) );
+				var pathParams = new Dictionary<LightspeedRequestPathParam, string>
+				{ 
+					{ LightspeedRequestPathParam.ShopId, this.ShopId.ToString() },
+					{ LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\",\"Images\",\"ItemAttributes\"]" } 
+				};
 				return pathParams;
 			}
 
@@ -57,13 +58,6 @@ namespace LightspeedAccess.Models.Request
 		{
 			this.InitRequest();
 			this.ShopId = shopId;
-		}
-
-		public GetProductsRequest( int shopId, DateTime createTimeUtc )
-		{
-			this.InitRequest();
-			this.ShopId = shopId;
-			this.createTimeUtc = createTimeUtc;
 		}
 
 		public override string ToString()

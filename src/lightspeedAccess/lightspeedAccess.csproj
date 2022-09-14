@@ -70,7 +70,9 @@
     <Compile Include="Models\Auth\AuthResult.cs" />
     <Compile Include="Models\Configuration\LigthspeedConfig.cs" />
     <Compile Include="Misc\QuotaParser.cs" />
-    <Compile Include="Models\Product\ItemPrices.cs" />
+    <Compile Include="Models\Product\ItemAttributes.cs" />
+    <Compile Include="Models\Product\ItemImage.cs" />
+    <Compile Include="Models\Product\ItemPrice.cs" />
     <Compile Include="Models\Product\LightspeedProduct.cs" />
     <Compile Include="Models\Request\GetAccountRequest.cs" />
     <Compile Include="Models\Request\GetItemRequest.cs" />

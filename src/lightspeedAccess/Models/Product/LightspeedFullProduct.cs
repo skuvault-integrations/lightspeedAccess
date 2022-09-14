@@ -112,7 +112,13 @@ namespace LightspeedAccess.Models.Product
 
 		[ DataMember( Order = 26 ) ]
 		public ItemPrice[] Prices{ get; set; }
-
+		
+		[ DataMember( Order = 27 ) ]
+		public ItemAttributes ItemAttributes{ get; set; }
+		
+		[ DataMember( Order = 28 ) ]
+		public Image[] Images{ get; set; }
+		
 		public override int GetHashCode()
 		{
 			if( this.SystemSku == null )
@@ -146,28 +152,24 @@ namespace LightspeedAccess.Models.Product
 			return this.Equals( ( LightspeedProduct )obj );
 		}
 
-		public bool GetEffectiveSku( out string sku )
+		public string GetEffectiveSku()
 		{
 			if( !string.IsNullOrEmpty( this.Sku ) )
 			{
-				sku = this.Sku;
-				return true;
+				return this.Sku;
 			}
 
 			if( !string.IsNullOrEmpty( this.ManufacturerSku ) )
 			{
-				sku = this.ManufacturerSku;
-				return true;
+				return this.ManufacturerSku;
 			}
 
 			if( !string.IsNullOrEmpty( this.SystemSku ) )
 			{
-				sku = this.SystemSku;
-				return true;
+				return this.SystemSku;
 			}
 
-			sku = "";
-			return false;
+			return string.Empty;
 		}
 	}
 

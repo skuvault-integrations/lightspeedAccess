@@ -8,8 +8,6 @@ namespace LightspeedAccess
 {
 	public interface ILightspeedProductsService
 	{
-		Task< IEnumerable< LightspeedFullProduct > > GetProductsAsync( int shopId, DateTime createTimeUtc, CancellationToken ctx );
-		
 		Task< IEnumerable< LightspeedFullProduct > > GetProductsAsync( int shopId, CancellationToken ctx );
 	}
 }

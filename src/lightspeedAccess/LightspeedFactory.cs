@@ -7,6 +7,7 @@ namespace LightspeedAccess
 	{
 		ILightspeedOrdersService CreateOrdersService( LightspeedConfig config );
 		ILightspeedShopService CreateShopsService( LightspeedConfig config );
+		ILightspeedProductsService CreateProductsService( LightspeedConfig config );
 		IAccountService CreateAccountsService( LightspeedConfig config );
 		ILigthspeedAuthService CreateLightspeedAuthService();
 	}

@@ -26,15 +26,6 @@ namespace LightspeedAccess
 			this._accountId = this._config.AccountId;
 		}
 
-		public async Task< IEnumerable< LightspeedFullProduct > > GetProductsAsync( int shopId, DateTime createTimeUtc, CancellationToken ctx )
-		{
-			LightspeedLogger.Debug( $"Getting products, created in shop {shopId} after {createTimeUtc}", this._accountId );
-			var getProductsRequest = new GetProductsRequest( shopId, createTimeUtc );
-			var result = await this.ExecuteGetProductsRequest( getProductsRequest, ctx );
-			LightspeedLogger.Debug( $"Getting {result.Count()} products updated after {createTimeUtc} in shop {shopId}", this._accountId );
-			return result;
-		}
-
 		public async Task< IEnumerable< LightspeedFullProduct > > GetProductsAsync( int shopId, CancellationToken ctx )
 		{
 			var getProductsRequest = new GetProductsRequest( shopId );
