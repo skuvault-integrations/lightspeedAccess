@@ -12,7 +12,6 @@ namespace LightspeedAccess.Models.Request
 
 		private int Limit{ get; set; }
 		private int Offset{ get; set; }
-		private ArchivedOptionEnum ArchivedOption{ get; set; }
 
 		protected override IEnumerable< LightspeedRestAPISegment > GetPath()
 		{
@@ -21,17 +20,12 @@ namespace LightspeedAccess.Models.Request
 
 		private Dictionary< LightspeedRequestPathParam, string > GetMainPathParams()
 		{
-			if( this.ShopId != 0 )
-			{
-				var pathParams = new Dictionary<LightspeedRequestPathParam, string>
-				{ 
-					{ LightspeedRequestPathParam.ShopId, this.ShopId.ToString() },
-					{ LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\",\"Images\",\"ItemAttributes\",\"ItemAttributes.ItemAttributeSet\"]" } 
-				};
-				return pathParams;
-			}
-
-			return new Dictionary< LightspeedRequestPathParam, string >();
+			var pathParams = new Dictionary<LightspeedRequestPathParam, string>
+			{ 
+				{ LightspeedRequestPathParam.ShopId, this.ShopId.ToString() },
+				{ LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\",\"Images\",\"ItemAttributes\",\"ItemAttributes.ItemAttributeSet\"]" } 
+			};
+			return pathParams;
 		}
 
 		protected override Dictionary< LightspeedRequestPathParam, string > GetPathParams()
@@ -39,10 +33,6 @@ namespace LightspeedAccess.Models.Request
 			var initialParams = this.GetMainPathParams();
 			initialParams.Add( LightspeedRequestPathParam.Limit, this.Limit.ToString() );
 			initialParams.Add( LightspeedRequestPathParam.Offset, this.Offset.ToString() );
-			if( this.ArchivedOption != ArchivedOptionEnum.Undefined )
-			{
-				initialParams.Add( LightspeedRequestPathParam.Archived, this.ArchivedOption.ToString().ToLowerInvariant() );
-			}
 
 			return initialParams;
 		}
@@ -51,7 +41,6 @@ namespace LightspeedAccess.Models.Request
 		{
 			this.Limit = DefaultLimit;
 			this.Offset = 0;
-			this.ArchivedOption = ArchivedOptionEnum.Undefined;
 		}
 
 		public GetProductsRequest( int shopId )
@@ -78,19 +67,6 @@ namespace LightspeedAccess.Models.Request
 		public int GetLimit()
 		{
 			return this.Limit;
-		}
-
-		public void SetArchivedOptionEnum( ArchivedOptionEnum archived )
-		{
-			this.ArchivedOption = archived;
-		}
-
-		public enum ArchivedOptionEnum
-		{
-			Undefined,
-			True, 
-			False, 
-			Only
 		}
 	}
 }
