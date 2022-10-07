@@ -132,7 +132,7 @@ namespace LightspeedAccess.Models.Product
 			}
 		}
 
-		public bool Equals( LightspeedProduct other )
+		public bool Equals( LightspeedFullProduct other )
 		{
 			if( ReferenceEquals( null, other ) )
 				return false;
@@ -149,7 +149,7 @@ namespace LightspeedAccess.Models.Product
 				return true;
 			if( obj.GetType() != this.GetType() )
 				return false;
-			return this.Equals( ( LightspeedProduct )obj );
+			return this.Equals( ( LightspeedFullProduct )obj );
 		}
 
 		public string GetEffectiveSku()
