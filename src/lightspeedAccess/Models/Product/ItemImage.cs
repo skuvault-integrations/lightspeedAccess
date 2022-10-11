@@ -18,5 +18,9 @@ namespace LightspeedAccess.Models.Product
 		[ XmlElement( "baseImageURL" ) ]
 		[ DataMember( Order = 3 ) ]
 		public string BaseImageUrl{ get; set; }
+		
+		[ XmlElement( "publicID" ) ]
+		[ DataMember( Order = 4 ) ]
+		public string PublicId{ get; set; }
 	}
 }
