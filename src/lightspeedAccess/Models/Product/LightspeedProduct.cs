@@ -29,7 +29,7 @@ namespace LightspeedAccess.Models.Product
 
 		[ DataMember( Order = 5 ) ]
 		public ItemShop[] ItemShops{ get; set; }
-	
+
 		public LightspeedProduct()
 		{
 		}

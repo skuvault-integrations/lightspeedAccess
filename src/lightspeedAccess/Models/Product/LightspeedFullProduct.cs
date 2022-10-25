@@ -189,8 +189,7 @@ namespace LightspeedAccess.Models.Product
 		public void Aggregate( IPaginatedResponse other )
 		{
 			var otherTyped = ( LightspeedFullProductList )other;
-			if( otherTyped != null )
-				if( otherTyped.Item != null )
+			if( otherTyped?.Item != null )
 					this.Item = this.Item.Concat( otherTyped.Item ).ToArray();
 		}
 	}
