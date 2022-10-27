@@ -40,6 +40,7 @@
   <ItemGroup>
     <Compile Include="Credentials\TestsCredentials.cs" />
     <Compile Include="Orders\OrderTests.cs" />
+    <Compile Include="Products\ProductsTests.cs" />
     <Compile Include="Shops\ShopTests.cs" />
   </ItemGroup>
   <ItemGroup>
