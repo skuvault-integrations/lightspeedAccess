@@ -42,7 +42,7 @@
   <ItemGroup>
     <PackageReference Include="CuttingEdge.Conditions" Version="1.2.0" />
     <PackageReference Include="Netco" Version="2.0.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountService.cs" />
