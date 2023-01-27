@@ -119,6 +119,9 @@ namespace LightspeedAccess.Models.Product
 		[ DataMember( Order = 28 ) ]
 		public Image[] Images{ get; set; }
 		
+		[ XmlIgnore ]
+		public string DefaultVendorName{ get; set; }
+		
 		public override int GetHashCode()
 		{
 			if( this.SystemSku == null )

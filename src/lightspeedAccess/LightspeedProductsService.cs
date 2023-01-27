@@ -29,7 +29,21 @@ namespace LightspeedAccess
 		public async Task< IEnumerable< LightspeedFullProduct > > GetProductsAsync( int shopId, CancellationToken ctx )
 		{
 			var getProductsRequest = new GetProductsRequest( shopId );
-			return await this.ExecuteGetProductsRequest( getProductsRequest, ctx );
+			var products = await this.ExecuteGetProductsRequest( getProductsRequest, ctx );
+			
+			var getVendorsRequest = new GetVendorsRequest( shopId );
+			var vendors = await this.ExecuteGetVendorsRequest( getVendorsRequest, ctx );
+			
+			foreach( var product in products )
+			{
+				var vendor = vendors.FirstOrDefault( x => x.VendorId == product.DefaultVendorId );
+				if( vendor == null )
+					continue;
+				
+				product.DefaultVendorName = vendor.Name;
+			}
+			
+			return products;
 		}
 
 		private async Task< IEnumerable< LightspeedFullProduct > > ExecuteGetProductsRequest( GetProductsRequest request, CancellationToken ctx )
@@ -38,6 +52,15 @@ namespace LightspeedAccess
 			var response = await this._webRequestServices.GetResponseAsync< LightspeedFullProductList >( request, ctx );
 			if( response.Item != null )
 				result = response.Item.ToList();
+			return result;
+		}
+
+		private async Task< IEnumerable< LightspeedVendor > > ExecuteGetVendorsRequest( GetVendorsRequest request, CancellationToken ctx )
+		{
+			var result = new List< LightspeedVendor >();
+			var response = await this._webRequestServices.GetResponseAsync< LightspeedVendorList >( request, ctx );
+			if( response.Vendor != null )
+				result = response.Vendor.ToList();
 			return result;
 		}
 	}
