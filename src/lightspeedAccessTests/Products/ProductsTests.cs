@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Web.Management;
 using LightspeedAccess;
 using LightspeedAccess.Models.Configuration;
 using NUnit.Framework;
@@ -31,6 +32,9 @@ namespace lightspeedAccessTests.Products
 			var products = service.GetProductsAsync( 1, cSource.Token ).GetAwaiter().GetResult();
 
 			Assert.Greater( products.Count(), 0 );
+			Assert.That(
+				products.Count( x => x.DefaultVendorId != 0 ),
+				Is.EqualTo( products.Count( x => !string.IsNullOrEmpty( x.DefaultVendorName ) ) ) );
 		}
 	}
 }

@@ -30,19 +30,19 @@ namespace LightspeedAccess
 		{
 			var getProductsRequest = new GetProductsRequest( shopId );
 			var products = await this.ExecuteGetProductsRequest( getProductsRequest, ctx );
-			
+
 			var getVendorsRequest = new GetVendorsRequest( shopId );
-			var vendors = await this.ExecuteGetVendorsRequest( getVendorsRequest, ctx );
-			
+			var vendors = ( await this.ExecuteGetVendorsRequest( getVendorsRequest, ctx ) )
+				.ToDictionary( k => k.VendorId, v => v.Name );
+
 			foreach( var product in products )
 			{
-				var vendor = vendors.FirstOrDefault( x => x.VendorId == product.DefaultVendorId );
-				if( vendor == null )
+				if( !vendors.TryGetValue( product.DefaultVendorId, out var vendorName ) )
 					continue;
-				
-				product.DefaultVendorName = vendor.Name;
+
+				product.DefaultVendorName = vendorName;
 			}
-			
+
 			return products;
 		}
 
