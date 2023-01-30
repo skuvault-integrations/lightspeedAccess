@@ -33,7 +33,8 @@ namespace LightspeedAccess
 
 			var getVendorsRequest = new GetVendorsRequest( shopId );
 			var vendors = ( await this.ExecuteGetVendorsRequest( getVendorsRequest, ctx ) )
-				.ToDictionary( k => k.VendorId, v => v.Name );
+				.GroupBy( x => x.VendorId )
+				.ToDictionary( k => k.Key, v => v.First().Name );
 
 			foreach( var product in products )
 			{
