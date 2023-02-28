@@ -23,7 +23,7 @@ namespace LightspeedAccess.Models.Request
 			var pathParams = new Dictionary<LightspeedRequestPathParam, string>
 			{ 
 				{ LightspeedRequestPathParam.ShopId, this.ShopId.ToString() },
-				{ LightspeedRequestPathParam.LoadRelations, "[\"ItemShops\",\"Images\",\"ItemAttributes\",\"ItemAttributes.ItemAttributeSet\"]" } 
+				{ LightspeedRequestPathParam.LoadRelations, "[\"Category\",\"ItemShops\",\"Images\",\"ItemAttributes\",\"ItemAttributes.ItemAttributeSet\"]" } 
 			};
 			return pathParams;
 		}
