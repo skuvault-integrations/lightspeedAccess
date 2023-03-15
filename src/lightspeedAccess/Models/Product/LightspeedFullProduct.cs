@@ -119,6 +119,12 @@ namespace LightspeedAccess.Models.Product
 		[ DataMember( Order = 28 ) ]
 		public Image[] Images{ get; set; }
 		
+		[ DataMember( Order = 29 ) ]
+		public Category Category{ get; set; }
+		
+		[ XmlIgnore ]
+		public string DefaultVendorName{ get; set; }
+		
 		public override int GetHashCode()
 		{
 			if( this.SystemSku == null )
@@ -150,26 +156,6 @@ namespace LightspeedAccess.Models.Product
 			if( obj.GetType() != this.GetType() )
 				return false;
 			return this.Equals( ( LightspeedFullProduct )obj );
-		}
-
-		public string GetEffectiveSku()
-		{
-			if( !string.IsNullOrEmpty( this.Sku ) )
-			{
-				return this.Sku;
-			}
-
-			if( !string.IsNullOrEmpty( this.ManufacturerSku ) )
-			{
-				return this.ManufacturerSku;
-			}
-
-			if( !string.IsNullOrEmpty( this.SystemSku ) )
-			{
-				return this.SystemSku;
-			}
-
-			return string.Empty;
 		}
 	}
 
