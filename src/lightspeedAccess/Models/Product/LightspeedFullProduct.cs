@@ -54,7 +54,7 @@ namespace LightspeedAccess.Models.Product
 		[ DataMember( Order = 11 ) ]
 		public bool Serialized{ get; set; }
 
-		[ XmlElement( "decription" ) ]
+		[ XmlElement( "description" ) ]
 		[ DataMember( Order = 12 ) ]
 		public string Description{ get; set; }
 
@@ -121,6 +121,9 @@ namespace LightspeedAccess.Models.Product
 		
 		[ DataMember( Order = 29 ) ]
 		public Category Category{ get; set; }
+		
+		[ DataMember( Order = 30 ) ]
+		public Manufacturer Manufacturer{ get; set; }
 		
 		[ XmlIgnore ]
 		public string DefaultVendorName{ get; set; }
