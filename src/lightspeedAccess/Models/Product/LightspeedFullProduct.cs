@@ -122,6 +122,9 @@ namespace LightspeedAccess.Models.Product
 		[ DataMember( Order = 29 ) ]
 		public Category Category{ get; set; }
 		
+		[ DataMember( Order = 30 ) ]
+		public Manufacturer Manufacturer{ get; set; }
+		
 		[ XmlIgnore ]
 		public string DefaultVendorName{ get; set; }
 		

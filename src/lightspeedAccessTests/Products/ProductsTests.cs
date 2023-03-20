@@ -35,6 +35,8 @@ namespace lightspeedAccessTests.Products
 			Assert.That(
 				products.Count( x => x.DefaultVendorId != 0 ),
 				Is.EqualTo( products.Count( x => !string.IsNullOrEmpty( x.DefaultVendorName ) ) ) );
+			Assert.Greater( products.Count( x => x.Manufacturer != null ), 0 );
+			Assert.Greater( products.Count( x => x.Description != null ), 0 );
 		}
 	}
 }
