@@ -54,7 +54,7 @@ namespace LightspeedAccess.Models.Product
 		[ DataMember( Order = 11 ) ]
 		public bool Serialized{ get; set; }
 
-		[ XmlElement( "decription" ) ]
+		[ XmlElement( "description" ) ]
 		[ DataMember( Order = 12 ) ]
 		public string Description{ get; set; }
 
