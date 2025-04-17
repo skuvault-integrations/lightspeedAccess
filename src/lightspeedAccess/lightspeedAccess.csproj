@@ -43,9 +43,13 @@
     <PackageReference Include="CuttingEdge.Conditions" Version="1.2.0" />
     <PackageReference Include="Netco" Version="2.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="SkuVault.Integrations.Core">
+      <Version>1.10.0</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountService.cs" />
+    <Compile Include="Helpers\TokenSanitizer.cs" />
     <Compile Include="IAccountService.cs" />
     <Compile Include="ILightspeedShopService.cs" />
     <Compile Include="ILigthspeedAuthService.cs" />
@@ -104,6 +108,7 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

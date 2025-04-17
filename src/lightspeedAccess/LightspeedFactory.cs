@@ -1,12 +1,13 @@
 ﻿using lightspeedAccess;
 using LightspeedAccess.Models.Configuration;
+using SkuVault.Integrations.Core.Common;
 
 namespace LightspeedAccess
 {
 	public interface ILightspeedFactory
 	{
-		ILightspeedOrdersService CreateOrdersService( LightspeedConfig config );
-		ILightspeedShopService CreateShopsService( LightspeedConfig config );
+		ILightspeedOrdersService CreateOrdersService( LightspeedConfig config, SyncRunContext syncRunContext );
+		ILightspeedShopService CreateShopsService( LightspeedConfig config, SyncRunContext syncRunContext );
 		IAccountService CreateAccountsService( LightspeedConfig config );
 		ILigthspeedAuthService CreateLightspeedAuthService();
 	}
@@ -24,14 +25,14 @@ namespace LightspeedAccess
 			this.LightspeedRedirectUri = redirectUri;
 		}
 
-		public ILightspeedOrdersService CreateOrdersService( LightspeedConfig config )
+		public ILightspeedOrdersService CreateOrdersService( LightspeedConfig config, SyncRunContext syncRunContext )
 		{
-			return new LightspeedOrdersService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
+			return new LightspeedOrdersService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ), syncRunContext );
 		}
 
-		public ILightspeedShopService CreateShopsService( LightspeedConfig config )
+		public ILightspeedShopService CreateShopsService( LightspeedConfig config, SyncRunContext syncRunContext )
 		{
-			return new LightspeedShopService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
+			return new LightspeedShopService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ), syncRunContext );
 		}
 
 		public IAccountService CreateAccountsService( LightspeedConfig config )

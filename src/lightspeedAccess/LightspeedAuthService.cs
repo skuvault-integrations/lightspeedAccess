@@ -6,6 +6,7 @@ using LightspeedAccess.Misc;
 using System.Web.Script.Serialization;
 using lightspeedAccess.Models.Auth;
 using Netco.Extensions;
+using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccess
 {
@@ -16,20 +17,19 @@ namespace lightspeedAccess
 
 		private const string AuthTokenEndpoint = "https://cloud.merchantos.com/oauth/access_token.php";
 		private const string TemporaryTokenEndpoint = "https://cloud.merchantos.com/oauth/authorize.php";
+		private const string CallerType = nameof(LightspeedAuthService);
 
 		private enum RequestType { GetAuthorizationCode, RefreshToken }
 
 		public LightspeedAuthService( string lightspeedClientId, string lightspeedClientSecret )
 		{
-			LightspeedLogger.Debug( "Started LightspeedAuthService", -1 );
-
 			this._lightspeedClientSecret = lightspeedClientSecret;
 			this._ligthspeedClientId = lightspeedClientId;
 		}
 
-		public AuthResult GetAuthByTemporyToken( string temporyToken )
+		public AuthResult GetAuthByTemporyToken( string temporyToken, SyncRunContext syncRunContext )
 		{
-			return this.GetAuthInfo( temporyToken, RequestType.GetAuthorizationCode );
+			return this.GetAuthInfo( temporyToken, RequestType.GetAuthorizationCode, syncRunContext );
 		}
 
 		public string GetAuthUrl()
@@ -37,9 +37,9 @@ namespace lightspeedAccess
 			return "{0}/?response_type=code&client_id={1}&scope=employee:register%20employee:inventory%20employee:admin_shops%20employee:customers".FormatWith( TemporaryTokenEndpoint, this._ligthspeedClientId );
 		}
 
-		internal string GetNewAccessToken( string refreshToken, int accountId )
+		internal string GetNewAccessToken( string refreshToken, SyncRunContext syncRunContext )
 		{
-			var authResult = this.GetAuthInfo( refreshToken, RequestType.RefreshToken, accountId );
+			var authResult = this.GetAuthInfo( refreshToken, RequestType.RefreshToken, syncRunContext );
 			return authResult.AccessToken;
 		}
 
@@ -61,9 +61,10 @@ namespace lightspeedAccess
 			return response.StatusCode == HttpStatusCode.Unauthorized;
 		}
 
-		private AuthResult GetAuthInfo( string token, RequestType requestType, int accountId = -1 )
+		private AuthResult GetAuthInfo( string token, RequestType requestType, SyncRunContext syncRunContext )
 		{
-			LightspeedLogger.Debug( string.Format( "Creating get auth token request with a token {0}", token ), accountId );
+			const string callerMethodName = nameof(GetAuthInfo);
+			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Creating get auth token request with a token {token}" );
 
 			var uri = new Uri( AuthTokenEndpoint );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
@@ -91,22 +92,22 @@ namespace lightspeedAccess
 				stOut.Close();
 			}
 
-			LightspeedLogger.Debug( string.Format( "Request body created sucessfully, sending it to server: {0}, Token:{1}", data, token ), accountId );
+			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Request body created sucessfully, sending it to server: {data}, Token:{token}" );
 
 			var response = request.GetResponse();
-			LightspeedLogger.Debug( "Successfully got response from server, reading response stream", accountId );
+			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, "Successfully got response from server, reading response stream" );
 
 			var reader = new StreamReader( response.GetResponseStream() );
 
 			var responseJson = reader.ReadToEnd();
 
-			LightspeedLogger.Debug( "Response stream reading complete. Starting deserialization", accountId );
+			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, "Response stream reading complete. Starting deserialization" );
 			var serializer = new JavaScriptSerializer();
 			var jsonDictionary = ( IDictionary< string, object > )serializer.DeserializeObject( responseJson );
-			string accessToken = ( string )jsonDictionary[ "access_token" ];
-			string refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : String.Empty;
+			var accessToken = ( string )jsonDictionary[ "access_token" ];
+			var refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : String.Empty;
 
-			LightspeedLogger.Debug( string.Format( "Deserialization completed successfully, your token is {0}", accessToken ), accountId );
+			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Deserialization completed successfully, your token is {accessToken}" );
 			return new AuthResult( accessToken, refreshToken );
 		}
 	}

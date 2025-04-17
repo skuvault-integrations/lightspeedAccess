@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LightspeedAccess;
 using LightspeedAccess.Models.Configuration;
 using NUnit.Framework;
+using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccessTests.Orders
 {
@@ -14,6 +14,7 @@ namespace lightspeedAccessTests.Orders
 	{
 		private LightspeedFactory _factory;
 		private LightspeedConfig _config;
+		private static SyncRunContext SyncRunContext => new SyncRunContext( 1, 2, Guid.NewGuid().ToString() );
 
 		[ SetUp ]
 		public void Init()
@@ -26,7 +27,7 @@ namespace lightspeedAccessTests.Orders
 		[ Test ]
 		public void OrderServiceTest()
 		{
-			var service = this._factory.CreateOrdersService( this._config );
+			var service = this._factory.CreateOrdersService( this._config, SyncRunContext );
 			var endDate = DateTime.Now;
 			var startDate = endDate.Subtract( new TimeSpan( 10000, 0, 0, 0 ) );
 
@@ -38,7 +39,7 @@ namespace lightspeedAccessTests.Orders
 		[ Test ]
 		public void OrderServiceTestAsync()
 		{
-			var service = _factory.CreateOrdersService( _config );
+			var service = _factory.CreateOrdersService( _config, SyncRunContext );
 
 			var endDate = DateTime.Now;
 			var startDate = endDate.AddMonths( -6 );
@@ -53,7 +54,7 @@ namespace lightspeedAccessTests.Orders
 		[ Test ]
 		public void SingleServiceThrottlerTestAsync()
 		{
-			var service = _factory.CreateOrdersService( _config );
+			var service = _factory.CreateOrdersService( _config, SyncRunContext );
 			var endDate = DateTime.Now;
 			var startDate = endDate.AddMonths( -6 );
 
@@ -71,8 +72,8 @@ namespace lightspeedAccessTests.Orders
 		[ Test ]
 		public void MultipleServicesThrottlerTestAsync()
 		{
-			var service = _factory.CreateOrdersService( _config );
-			var invService = _factory.CreateShopsService( _config );
+			var service = _factory.CreateOrdersService( _config, SyncRunContext );
+			var invService = _factory.CreateShopsService( _config, SyncRunContext );
 			var endDate = DateTime.Now;
 			var startDate = endDate.AddMonths( -6 );
 
@@ -100,7 +101,7 @@ namespace lightspeedAccessTests.Orders
 		public void SmokeTest()
 		{
 			var service = _factory.CreateLightspeedAuthService();
-			var token = service.GetAuthByTemporyToken( "" );
+			var token = service.GetAuthByTemporyToken( "", SyncRunContext );
 			Console.WriteLine( "YOUR TOKEN IS: " + token );
 			Assert.Greater( 1, 0 );
 		}

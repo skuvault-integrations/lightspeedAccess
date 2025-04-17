@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Credentials\TestsCredentials.cs" />
+    <Compile Include="Helprers\TokenSanitizerTests.cs" />
     <Compile Include="Orders\OrderTests.cs" />
     <Compile Include="Shops\ShopTests.cs" />
   </ItemGroup>

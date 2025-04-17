@@ -4,6 +4,7 @@ using lightspeedAccess.Models.Request;
 using LightspeedAccess.Misc;
 using LightspeedAccess.Models.Configuration;
 using LightspeedAccess.Services;
+using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccess
 {
@@ -13,15 +14,14 @@ namespace lightspeedAccess
 
 		public AccountService( LightspeedConfig config, LightspeedAuthService authService )
 		{
-			LightspeedLogger.Debug( string.Format( "Started LightspeedAccountService with config {0}", config ), config.AccountId );
 			this._webRequestServices = new WebRequestService( config, null, authService );
 		}
 
-		public int GetAccoundId()
+		public int GetAccountId( SyncRunContext syncRunContext )
 		{
-			LightspeedLogger.Debug( "Started getting account Id for current session", -1 );
+			LightspeedLogger.Debug( syncRunContext, nameof(AccountService), nameof(this.GetAccountId), "Started getting account Id for current session" );
 			var request = new GetAccountRequest();
-			return this._webRequestServices.GetResponse< LightspeedAccountList >( request ).Account.First().AccountId;
+			return this._webRequestServices.GetResponse< LightspeedAccountList >( request, syncRunContext ).Account.First().AccountId;
 		}
 	}
 }

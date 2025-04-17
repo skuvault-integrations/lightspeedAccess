@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using LightspeedAccess;
 using LightspeedAccess.Models.Configuration;
 using NUnit.Framework;
+using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccessTests.Shops
 {
@@ -14,6 +14,9 @@ namespace lightspeedAccessTests.Shops
 	{
 		private LightspeedFactory _factory;
 		private LightspeedConfig _config;
+		private ILightspeedShopService _service;
+		private readonly Randomizer _randomizer = new Randomizer();
+		private static SyncRunContext SyncRunContext => new SyncRunContext( 1, 2, Guid.NewGuid().ToString() );
 
 		[ SetUp ]
 		public void Init()
@@ -21,89 +24,71 @@ namespace lightspeedAccessTests.Shops
 			var credentials = new Credentials.TestsCredentials(@"..\..\Files\lightspeedCredentials.csv");
 			this._factory = new LightspeedFactory(credentials.ClientId, credentials.ClientSecret, "");
 			this._config = new LightspeedConfig(credentials.AccountId, credentials.AccessToken, credentials.RefreshToken);
+			this._service = this._factory.CreateShopsService( _config, SyncRunContext );
 		}
 
 		[ Test ]
-		public void GetShopsTest()
+		public async Task GetShopsAsync()
 		{
-			var service = _factory.CreateShopsService( _config );
+			var shops = await this._service.GetShopsAsync( new CancellationToken() );
 
-			var shops = service.GetShops();
 			Assert.Greater( shops.Count(), 0 );
 		}
 
 		[ Test ]
-		public void GetShopsTestAsync()
+		public async Task UpdateOnHandQuantityAsync()
 		{
-			var service = _factory.CreateShopsService( _config );
+			var itemId = 17;
+			var shopId = 1;
+			var itemShopRelationId = 37;
+			var quantity = _randomizer.Next( 1, 100 );
 
-			var cSource = new CancellationTokenSource();
+			await this._service.UpdateOnHandQuantityAsync( itemId, shopId, itemShopRelationId, quantity, new CancellationToken() );
 
-			var shops = service.GetShopsAsync( cSource.Token );
-			shops.Wait();
-
-			Assert.Greater( shops.Result.Count(), 0 );
+			var items = await this._service.GetItems( shopId, new CancellationToken() );
+			var item = items.FirstOrDefault( f => f.ItemId == itemId );
+			var itemQty = item.ItemShops.FirstOrDefault( f => f.ShopId == shopId && f.ItemShopId == itemShopRelationId )?.QuantityOnHand;
+			Assert.That( itemQty, Is.EqualTo( quantity ) );
 		}
 
 		[ Test ]
-		public void PushToShopTest()
+		public async Task GetItemsAsync_ReturnsItems_WhenCorrectSkuIsProvided()
 		{
-			var service = _factory.CreateShopsService( _config );
-			service.UpdateOnHandQuantity( 7, 1, 15, 1 );
+			var sku = "testsku1";
+
+			var items = await this._service.GetItems( new List< string > { sku }, new CancellationToken() );
+			
+			Assert.Greater( items.Count, 0 );
 		}
 
 		[ Test ]
-		public void PushToShopAsyncTest()
+		public async Task GetItems_ReturnsItems_WhenCorrectShopIdIsProvided()
 		{
-			var service = _factory.CreateShopsService( _config );
-			var cSource = new CancellationTokenSource();
-			var task = service.UpdateOnHandQuantityAsync( 7, 1, 15, 1, cSource.Token );
-			task.Wait();
-		}
+			var shopId = 1;
 
-		//210000000007
-
-		[ Test ]
-		public void GetItemsAsyncTest()
-		{
-			var service = _factory.CreateShopsService( _config );
-			var cSource = new CancellationTokenSource();
-			var task = service.GetItems( new List< String > { "test1234" }, cSource.Token );
-			task.Wait();
-			Assert.Greater( task.Result.Count, 0 );
+			var items = await this._service.GetItems( shopId, new CancellationToken() );
+			
+			Assert.Greater( items.Count(), 0 );
 		}
 
 		[ Test ]
-		public void GetItemFromSHopsAsyncTest()
+		public async Task GetExistingItemsIdsAsync_ReturnsSortedExistingItemsOnly_WhenCorrectAndFakeIdsProvided()
 		{
-			var service = _factory.CreateShopsService( _config );
-			var cSource = new CancellationTokenSource();
-			var task = service.GetItems( 1, cSource.Token );
-			task.Wait();
-			Assert.Greater( task.Result.Count(), 0 );
-		}
-
-		[Test]
-		public void GetExistingItemsIdsAsyncTest()
-		{
-			var service = _factory.CreateShopsService( _config );
-			var cSource = new CancellationTokenSource();
-			var prepareTask = service.GetItems( 1, cSource.Token );
-			prepareTask.Wait();
-			var ids = prepareTask.Result.Select( p => p.ItemId ).ToList();
+			var items = await this._service.GetItems( 1, new CancellationToken() );
+			var correctIds = items.Select( p => p.ItemId ).ToList();
 			var fakeIds = new List< int > { -1, 99999990, 99999991, 99999992, 99999993, 99999994, 99999995 };
-			fakeIds.AddRange( ids );
+			var allIds = correctIds.Union( fakeIds ).ToList();
 
-			var testTask = service.GetExistingItemsIdsAsync( fakeIds, cSource.Token );
-			testTask.Wait();
-			var resultIds = testTask.Result.ToList();
+			var existingItems = await this._service.GetExistingItemsIdsAsync( allIds, new CancellationToken() );
+			var resultIds = existingItems.ToList();
 
-			Assert.AreEqual( resultIds.Count, ids.Count );
-			ids.Sort();
+			Assert.AreEqual( resultIds.Count, correctIds.Count );
+			correctIds.Sort();
 			resultIds.Sort();
-			for (int i = 0; i < resultIds.Count; i++)
-				Assert.AreEqual( resultIds[i], ids[i] );
-
+			for (var i = 0; i < resultIds.Count; i++)
+			{
+				Assert.AreEqual( resultIds[ i ], correctIds[ i ] );
+			}
 		}
 	}
 }
