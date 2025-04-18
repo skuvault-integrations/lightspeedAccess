@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 
 namespace lightspeedAccess.Helpers
 {
@@ -32,6 +33,24 @@ namespace lightspeedAccess.Helpers
 
                 return $"Bearer {visibleStart}{maskedMiddle}{remainingEnd}";
             });
+        }
+
+        /// <summary>
+        /// Partially mask token in a string 
+        /// If the token length is less than expected, it masks the entire token.
+        /// </summary>
+        /// <param name="input">The input string containing the token.</param>
+        /// <returns>A string with the token partially masked, or the original string if no token is found.</returns>
+        public static string SanitizeToken(string token)
+        {
+            if (string.IsNullOrEmpty(token) || token.Length < 3)
+                return token;
+
+            int start = 2;
+            int lengthToReplace = Math.Min(5, token.Length - start);
+            string stars = new string('*', lengthToReplace);
+
+            return token.Substring(0, start) + stars + token.Substring(start + lengthToReplace);
         }
     }
 }

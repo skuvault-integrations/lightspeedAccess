@@ -8,6 +8,7 @@ namespace LightspeedAccess
 	{
 		ILightspeedOrdersService CreateOrdersService( LightspeedConfig config, SyncRunContext syncRunContext );
 		ILightspeedShopService CreateShopsService( LightspeedConfig config, SyncRunContext syncRunContext );
+		ILightspeedProductsService CreateProductsService( LightspeedConfig config, SyncRunContext syncRunContext );
 		IAccountService CreateAccountsService( LightspeedConfig config );
 		ILigthspeedAuthService CreateLightspeedAuthService();
 	}
@@ -35,6 +36,11 @@ namespace LightspeedAccess
 			return new LightspeedShopService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ), syncRunContext );
 		}
 
+		public ILightspeedProductsService CreateProductsService( LightspeedConfig config, SyncRunContext syncRunContext )
+		{
+			return new LightspeedProductsService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ), syncRunContext );
+		}
+		
 		public IAccountService CreateAccountsService( LightspeedConfig config )
 		{
 			return new AccountService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );

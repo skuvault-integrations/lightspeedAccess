@@ -1,7 +1,7 @@
 ﻿using lightspeedAccess.Helpers;
 using NUnit.Framework;
 
-namespace lightspeedAccessTests.Helprers
+namespace lightspeedAccessTests.Helpers
 {
 	public class TokenSanitizerTests
 	{
@@ -94,6 +94,84 @@ namespace lightspeedAccessTests.Helprers
 
             // Assert
             Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void SanitizeToken_ReturnsOriginal_WhenTokenIsNull()
+        {
+            // Arrange
+            string token = null;
+
+            // Act
+            var result = TokenSanitizer.SanitizeToken(token);
+
+            // Assert
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void SanitizeToken_ReturnsOriginal_WhenTokenIsEmpty()
+        {
+            // Arrange
+            string token = "";
+
+            // Act
+            var result = TokenSanitizer.SanitizeToken(token);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(""));
+        }
+
+        [Test]
+        public void SanitizeToken_ReturnsOriginal_WhenTokenLengthIsLessThan3()
+        {
+            // Arrange
+            string token = "ab";
+
+            // Act
+            var result = TokenSanitizer.SanitizeToken(token);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("ab"));
+        }
+
+        [Test]
+        public void SanitizeToken_ReplacesFiveChars_WhenTokenIsLongEnough()
+        {
+            // Arrange
+            string token = "abcdefghij";
+
+            // Act
+            var result = TokenSanitizer.SanitizeToken(token);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("ab*****hij"));
+        }
+
+        [Test]
+        public void SanitizeToken_ReplacesAvailableChars_WhenTokenHasLessThanFiveAfterStart()
+        {
+            // Arrange
+            string token = "abcde";
+
+            // Act
+            var result = TokenSanitizer.SanitizeToken(token);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("ab***"));
+        }
+
+        [Test]
+        public void SanitizeToken_ReplacesExactlyFive_WhenTokenHasExactlyEightCharacters()
+        {
+            // Arrange
+            string token = "abcdefgh";
+
+            // Act
+            var result = TokenSanitizer.SanitizeToken(token);
+
+            // Assert
+            Assert.That(result, Is.EqualTo("ab*****h"));
         }
     }
 }

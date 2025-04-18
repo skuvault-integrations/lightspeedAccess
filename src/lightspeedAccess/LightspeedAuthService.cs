@@ -7,6 +7,7 @@ using System.Web.Script.Serialization;
 using lightspeedAccess.Models.Auth;
 using Netco.Extensions;
 using SkuVault.Integrations.Core.Common;
+using lightspeedAccess.Helpers;
 
 namespace lightspeedAccess
 {
@@ -63,8 +64,8 @@ namespace lightspeedAccess
 
 		private AuthResult GetAuthInfo( string token, RequestType requestType, SyncRunContext syncRunContext )
 		{
-			const string callerMethodName = nameof(GetAuthInfo);
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Creating get auth token request with a token {token}" );
+			var sanitizedToken = TokenSanitizer.SanitizeToken( token );
+			LightspeedLogger.Debug( syncRunContext, CallerType, $"Creating get auth token request with a token {sanitizedToken}" );
 
 			var uri = new Uri( AuthTokenEndpoint );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
@@ -92,22 +93,23 @@ namespace lightspeedAccess
 				stOut.Close();
 			}
 
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Request body created sucessfully, sending it to server: {data}, Token:{token}" );
+			LightspeedLogger.Debug( syncRunContext, CallerType, $"Request body created sucessfully, sending it to server: {data}, Token:{sanitizedToken}" );
 
 			var response = request.GetResponse();
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, "Successfully got response from server, reading response stream" );
+			LightspeedLogger.Debug( syncRunContext, CallerType, "Successfully got response from server, reading response stream" );
 
 			var reader = new StreamReader( response.GetResponseStream() );
 
 			var responseJson = reader.ReadToEnd();
 
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, "Response stream reading complete. Starting deserialization" );
+			LightspeedLogger.Debug( syncRunContext, CallerType, "Response stream reading complete. Starting deserialization" );
 			var serializer = new JavaScriptSerializer();
 			var jsonDictionary = ( IDictionary< string, object > )serializer.DeserializeObject( responseJson );
 			var accessToken = ( string )jsonDictionary[ "access_token" ];
 			var refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : String.Empty;
 
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Deserialization completed successfully, your token is {accessToken}" );
+			var sanitizedAccessToken = TokenSanitizer.SanitizeToken( accessToken );
+			LightspeedLogger.Debug( syncRunContext, CallerType, $"Deserialization completed successfully, your token is {sanitizedAccessToken}" );
 			return new AuthResult( accessToken, refreshToken );
 		}
 	}

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using LightspeedAccess.Models.Request;
 
@@ -70,27 +67,6 @@ namespace LightspeedAccess.Models.Product
 				return false;
 			return this.Equals( ( LightspeedProduct ) obj );
 		}
-
-		public bool GetEffectiveSku( out string sku )
-		{
-			if ( !string.IsNullOrEmpty( this.Sku ) )
-			{
-				sku = this.Sku;
-				return true;
-			}
-			if ( !string.IsNullOrEmpty( this.ManufacturerSku ) )
-			{
-				sku = this.ManufacturerSku;
-				return true;
-			}
-			if ( !string.IsNullOrEmpty( this.SystemSku ) )
-			{
-				sku = this.SystemSku;
-				return true;
-			}
-			sku = "";
-			return false;
-		}
 	}
 
 	[ XmlType( "Item" ) ]
@@ -128,6 +104,7 @@ namespace LightspeedAccess.Models.Product
 		public int ItemShopId{ get; set; }
 
 		[ XmlElement( "qoh" ) ]
+		[ DataMember( Order = 4 ) ]		//Needed for caching
 		public int QuantityOnHand{ get; set; }
 	}
 

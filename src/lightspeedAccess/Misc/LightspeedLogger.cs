@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Netco.Logging;
 using SkuVault.Integrations.Core.Common;
 
@@ -19,17 +20,17 @@ namespace LightspeedAccess.Misc
 			VersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
 		}
 
-		public static void Debug( SyncRunContext syncRunContext, string callerType, string callerMethodName, string message )
+		public static void Debug( SyncRunContext syncRunContext, string callerType, string message, [ CallerMemberName ] string callerMethodName = null )
 		{
 			Log.Debug( FormatMessage( syncRunContext, callerType, callerMethodName, message ) );
 		}
 			
-		public static void Error( SyncRunContext syncRunContext, string callerType, string callerMethodName, string message )
+		public static void Error( SyncRunContext syncRunContext, string callerType, string message, [ CallerMemberName ] string callerMethodName = null )
 		{
 			Log.Error( FormatMessage( syncRunContext, callerType, callerMethodName, message ) );
 		}
 
-		public static void Error( Exception ex, SyncRunContext syncRunContext, string callerType, string callerMethodName, string message )
+		public static void Error( Exception ex, SyncRunContext syncRunContext, string callerType, string message, [ CallerMemberName ] string callerMethodName = null )
 		{
 			Log.Error( ex, FormatMessage( syncRunContext, callerType, callerMethodName, message ) );
 		}

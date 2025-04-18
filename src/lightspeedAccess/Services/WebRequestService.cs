@@ -34,12 +34,11 @@ namespace LightspeedAccess.Services
 
 		private static void ManageRequestBody( LightspeedRequest request, ref HttpWebRequest webRequest, SyncRunContext syncRunContext )
 		{
-			const string callerMethodName = nameof(ManageRequestBody);
 			var body = request.GetBody();
 
 			if( body == null )
 				return;
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Creating request body from stream for request {request}" );
+			LightspeedLogger.Debug( syncRunContext, CallerType, $"Creating request body from stream for request {request}" );
 
 			webRequest.Method = "PUT";
 
@@ -51,7 +50,7 @@ namespace LightspeedAccess.Services
 			{
 				var s = sr.ReadToEnd();
 
-				LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Created request body for request {request} : {s}" );
+				LightspeedLogger.Debug( syncRunContext, CallerType, $"Created request body for request {request} : {s}" );
 
 				webRequest.ContentLength = s.Length;
 				using( var dataStream = webRequest.GetRequestStream() )
@@ -69,8 +68,7 @@ namespace LightspeedAccess.Services
 
 		public T GetResponse< T >( LightspeedRequest request, SyncRunContext syncRunContext )
 		{
-			const string callerMethodName = nameof(GetResponse);
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Making request {request} to lightspeed server" );
+			LightspeedLogger.Debug( syncRunContext, CallerType, $"Making request {request} to lightspeed server" );
 
 			var webRequestAction = new Func< WebResponse >( () =>
 				{
@@ -96,16 +94,16 @@ namespace LightspeedAccess.Services
 			{
 				var stream = response.GetResponseStream();
 
-				LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Got response from server for request {request}, starting deserialization" );
+				LightspeedLogger.Debug( syncRunContext, CallerType, $"Got response from server for request {request}, starting deserialization" );
 				var deserializer = new XmlSerializer( typeof( T ) );
 				var result = ( T ) deserializer.Deserialize( stream );
-				LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Successfylly deserialized response for request {request}. Response: {response.ToJson()}" );
+				LightspeedLogger.Debug( syncRunContext, CallerType, $"Successfylly deserialized response for request {request}. Response: {response.ToJson()}" );
 
 				var possibleAdditionalResponses = this.IterateThroughPagination( request, result, syncRunContext );
 
 				if( result is IPaginatedResponse aggregatedResult )
 				{
-					LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Aggregating paginated results for request {request}" );
+					LightspeedLogger.Debug( syncRunContext, CallerType, $"Aggregating paginated results for request {request}" );
 					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
 				}
 
@@ -116,8 +114,7 @@ namespace LightspeedAccess.Services
 
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, SyncRunContext syncRunContext, CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetResponseAsync);
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Making request {request} to lightspeed server" );
+			LightspeedLogger.Debug( syncRunContext, CallerType, $"Making request {request} to lightspeed server" );
 			var webRequestAction = new Func< Task< WebResponse > >(
 				async () =>
 				{
@@ -156,20 +153,20 @@ namespace LightspeedAccess.Services
 
 				var stream = response.GetResponseStream();
 
-				LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+				LightspeedLogger.Debug( syncRunContext, CallerType,
 					$"Got response from server for request {request}, starting deserialization" );
 				var deserializer =
 					new XmlSerializer( typeof( T ) );
 
 				var result = ( T ) deserializer.Deserialize( stream );
 
-				LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+				LightspeedLogger.Debug( syncRunContext, CallerType,
 					$"Successfully deserialized response for request {request}. Response: {result.ToJson()}" );
 				var possibleAdditionalResponses = await this.IterateThroughPaginationAsync( request, result, syncRunContext, ctx );
 
 				if ( result is IPaginatedResponse aggregatedResult )
 				{
-					LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+					LightspeedLogger.Debug( syncRunContext, CallerType,
 						$"Aggregating paginated results for request {request}" );
 					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
 				}
@@ -232,17 +229,16 @@ namespace LightspeedAccess.Services
 			if( paginatedRequest.GetOffset() != 0 )
 				return additionalResponses;
 
-			const string callerMethodName = nameof(IterateThroughPagination);
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Debug( syncRunContext, CallerType,
 				$"Response for request {r} was paginated, started iterating the remaining pages..." );
 
 			var numPages = paginatedResponse.GetCount() / paginatedRequest.GetLimit() + 1;
 
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Debug( syncRunContext, CallerType,
 				$"Expected number of pages for request {r} : {numPages}" );
 			for( var pageNum = 1; pageNum < numPages; pageNum++ )
 			{
-				LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+				LightspeedLogger.Debug( syncRunContext, CallerType,
 					$"Processing page {numPages} for request {r}..." );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
 				additionalResponses.Add( this.GetResponse< T >( r, syncRunContext ) );
@@ -266,12 +262,11 @@ namespace LightspeedAccess.Services
 
 			var numPages = paginatedResponse.GetCount() / paginatedRequest.GetLimit() + 1;
 
-			const string callerMethodName = nameof(IterateThroughPagination);
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Debug( syncRunContext, CallerType,
 				$"Expected number of pages for request {r} : {numPages}" );
 			for( var pageNum = 1; pageNum < numPages; pageNum++ )
 			{
-				LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
+				LightspeedLogger.Debug( syncRunContext, CallerType,
 					$"Processing page {pageNum} / {numPages} for request {r}..." );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
 				additionalResponses.Add( await this.GetResponseAsync< T >( r, syncRunContext, ctx ) );
@@ -282,8 +277,7 @@ namespace LightspeedAccess.Services
 
 		private HttpWebRequest CreateHttpWebRequest( string url, SyncRunContext syncRunContext )
 		{
-			const string callerMethodName = nameof(CreateHttpWebRequest);
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName, $"Composed lightspeed request URL: {url}" );
+			LightspeedLogger.Debug( syncRunContext, CallerType, $"Composed lightspeed request URL: {url}" );
 			var uri = new Uri( url );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
@@ -301,9 +295,8 @@ namespace LightspeedAccess.Services
 				return string.Concat( "Bearer ", this._config.LightspeedAccessToken );
 			}
 			
-			const string callerMethodName = nameof(this.CreateAuthenticationHeader);
-			LightspeedLogger.Debug( syncRunContext, CallerType, callerMethodName,
-				$"Using basic header authorization method {this._config.Username} : {this._config.Password}" );
+			LightspeedLogger.Debug( syncRunContext, CallerType,
+				$"Using basic header authorization method for {this._config.Username}" );
 			var authInfo = string.Concat( this._config.Username, ":", this._config.Password );
 			authInfo = Convert.ToBase64String( Encoding.Default.GetBytes( authInfo ) );
 
@@ -317,11 +310,8 @@ namespace LightspeedAccess.Services
 			if( !( ex.Response is HttpWebResponse response ) )
 				return;
 
-			const string callerMethodName = nameof(LogRequestFailure);
 			var requestUri = request.Address.AbsolutePath;
 
-			var jss = new JavaScriptSerializer();
-			var responseJson = jss.Serialize( ex.Response );
 			var lightspeedRequestBody = lightspeedRequest.ToJson();
 			var safetyHeaders = TokenSanitizer.SanitizeBearerToken( request.Headers.ToString() );
 
@@ -331,7 +321,7 @@ namespace LightspeedAccess.Services
 				responseText = reader.ReadToEnd();
 			}
 
-			LightspeedLogger.Error( syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Error( syncRunContext, CallerType,
 				$"Got {response.StatusCode} code response from server with message {ex.Message}. RequestUrl: {request.Method} {requestUri}, headers: {safetyHeaders}, body {lightspeedRequestBody}" );
 		}
 

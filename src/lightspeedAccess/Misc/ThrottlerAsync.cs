@@ -29,16 +29,15 @@ namespace LightspeedAccess.Misc
 
 			this._throttlerActionPolicy = ActionPolicyAsync.Handle<Exception>().RetryAsync( maxRetryCount, async (ex, i) =>
 			{
-				const string callerMethodName = "RetryAsync";
-				if (this.IsExceptionFromThrottling(ex))
+				if ( this.IsExceptionFromThrottling( ex ) )
 				{
-					LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Throttler: got throttling exception. Retrying..." );
+					LightspeedLogger.Debug( _syncRunContext, CallerType, "Throttler: got throttling exception. Retrying..." );
 					await delayOnThrottlingException();
 				}
 				else
 				{
 					var errMessage = $"Throttler: faced non-throttling exception: {ex.Message}";
-					LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, errMessage );
+					LightspeedLogger.Debug( _syncRunContext, CallerType, errMessage );
 
 					if( !( ex is WebException webException ) ) throw new LightspeedException( errMessage, ex );
 					if( !( webException.Response is HttpWebResponse response ) ) throw new LightspeedException( errMessage, ex );
@@ -89,7 +88,7 @@ namespace LightspeedAccess.Misc
 			try
 			{
 				result = await funcToThrottle();
-				LightspeedLogger.Debug( _syncRunContext, CallerType, nameof(TryExecuteAsync), "Throttler: request executed successfully" );
+				LightspeedLogger.Debug( _syncRunContext, CallerType, "Throttler: request executed successfully" );
 				this.SubtractQuota( result );
 			}
 			finally
@@ -141,9 +140,8 @@ namespace LightspeedAccess.Misc
 
 		private async Task WaitIfNeededAsync()
 		{
-			const string callerMethodName = nameof(WaitIfNeededAsync);
 			var remainingQuota = this.GetRemainingQuota();
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Debug( _syncRunContext, CallerType,
 				$"Current quota remaining for account {this._accountId} is: {remainingQuota.RemainingQuantity}" );
 
 			if( remainingQuota.RemainingQuantity > this._requestCost )
@@ -157,28 +155,27 @@ namespace LightspeedAccess.Misc
 			var secondsForDelay = Convert.ToInt32( Math.Ceiling( ( this._requestCost - remainingQuota.RemainingQuantity ) / remainingQuota.DripRate ) );
             var millisecondsForDelay = secondsForDelay * 1000;
 
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Debug( _syncRunContext, CallerType,
 				$"Throttler: quota exceeded. Waiting {secondsForDelay} seconds..." );
-			await Task.Delay(millisecondsForDelay);
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Throttler: Resuming..." );
+			await Task.Delay( millisecondsForDelay );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Throttler: Resuming..." );
 		}
 
 		private void SubtractQuota< TResult >( TResult result )
 		{
-			const string callerMethodName = nameof(WaitIfNeededAsync);
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, 
+			LightspeedLogger.Debug( _syncRunContext, CallerType, 
 				"Throttler: trying to get leaky bucket metadata from response" );
 
 			if( QuotaParser.TryParseQuota( result, out var bucketMetadata ) )
 			{
-				LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName,
+				LightspeedLogger.Debug( _syncRunContext, CallerType,
 					$"Throttler: parsed leaky bucket metadata from response. Bucket size: {bucketMetadata.quotaSize}. Used: {bucketMetadata.quotaUsed}. Drip rate: {bucketMetadata.dripRate}" );
 				var quotaDelta = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
 				this.SetRemainingQuota( quotaDelta > 0 ? quotaDelta : 0, bucketMetadata.dripRate );
 			}
 
 			var remainingQuota = this.GetRemainingQuota();
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Debug( _syncRunContext, CallerType,
 				$"Throttler: subtracted quota, now available {remainingQuota.RemainingQuantity}, drip rate {remainingQuota.DripRate}" );
 		}
 

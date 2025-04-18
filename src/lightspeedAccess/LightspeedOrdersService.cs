@@ -33,8 +33,7 @@ namespace LightspeedAccess
 
 		public IEnumerable< LightspeedOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
 		{
-			const string callerMethodName = nameof(GetOrders);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName,
+			LightspeedLogger.Debug( this._syncRunContext, CallerType,
 				$"Started getting orders from lightspeed from {dateFrom} to {dateTo}" );
 
 			var getSalesRequest = new GetSalesRequest( dateFrom, dateTo );
@@ -48,12 +47,12 @@ namespace LightspeedAccess
 			if( rawOrders.Count == 0 )
 				return rawOrders;
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {rawOrders.Count} raw orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {rawOrders.Count} raw orders" );
 
 			var shopsNames = this.GetShopNames();
 			var items = this.GetItems( rawOrders );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Adding shop info, sale lines and ship info to raw orders..." );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Adding shop info, sale lines and ship info to raw orders..." );
 			rawOrders.ForEach( o =>
 			{
 				o.SaleLines.ForEach( s =>
@@ -64,7 +63,7 @@ namespace LightspeedAccess
 					o.ShopName = shopsNames.GetValue( o.ShopId );
 			} );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Retrieving orders completed" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Retrieving orders completed" );
 
 			return rawOrders;
 		}
@@ -77,8 +76,7 @@ namespace LightspeedAccess
 
 		private IEnumerable< LightspeedProduct > GetItems( HashSet< int > itemIdsFull )
 		{
-			const string callerMethodName = nameof(GetItems);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Started getting products for orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Started getting products for orders" );
 
 			var itemIdsPartitioned = itemIdsFull.ToList().Partition( 100 );
 
@@ -93,15 +91,14 @@ namespace LightspeedAccess
 					result.AddRange( this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest, this._syncRunContext ).Item.ToList() );
 			} );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {result.Count} products for orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {result.Count} products for orders" );
 
 			return result;
 		}
 
 		private Dictionary< int, ShipTo > GetShipInfo( IEnumerable< LightspeedOrder > orders )
 		{
-			const string callerMethodName = nameof(GetShipInfo);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Started getting shipping info for orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Started getting shipping info for orders" );
 
 			var shipIds = orders.Select( o => o.ShipToId ).ToHashSet();
 			var getShipInfoRequest = new GetShipInfoRequest( shipIds );
@@ -110,36 +107,34 @@ namespace LightspeedAccess
 			var response = this._webRequestServices.GetResponse< ShipInfoList >( getShipInfoRequest, this._syncRunContext ).ShipTo;
 			if( response != null )
 				result = response.Where( st => st.SaleId != 0 ).Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).ToDictionary( x => x.Item1, x => x.Item2 );
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {result.Count} shipping info entries" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {result.Count} shipping info entries" );
 			return result;
 		}
 
 		private Dictionary< int, string > GetShopNames()
 		{
-			const string callerMethodName = nameof(GetShopNames);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Started getting shop names..." );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Started getting shop names..." );
 
 			var result = new Dictionary< int, string >();
 			var response = this._webRequestServices.GetResponse< ShopsList >( new GetShopRequest(), this._syncRunContext ).Shop;
 			if( response != null )
 				result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {result.Count} shop entries" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {result.Count} shop entries" );
 
 			return result;
 		}
 
 		private async Task< Dictionary< int, string > > GetShopNamesAsync( CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetShopNamesAsync);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Started getting shop names..." );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Started getting shop names..." );
 			var result = new Dictionary< int, string >();
 
 			var response = ( await this._webRequestServices.GetResponseAsync< ShopsList >( new GetShopRequest(), this._syncRunContext, ctx ) ).Shop;
 			if( response != null )
 				result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {result.Count} shop entries" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {result.Count} shop entries" );
 
 			return result;
 		}
@@ -157,8 +152,7 @@ namespace LightspeedAccess
 
 		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( HashSet< int > itemIdsFull, CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetItemsAsync);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Started getting products for orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Started getting products for orders" );
 
 			if( itemIdsFull.Count == 0 )
 				return new List< LightspeedProduct >();
@@ -174,14 +168,13 @@ namespace LightspeedAccess
 			await Task.WhenAll( tasks );
 			var result = tasks.SelectMany( t => t.Result.Item ?? Array.Empty< LightspeedProduct >() ).ToList();
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {result.Count} products for orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {result.Count} products for orders" );
 			return result;
 		}
 
 		private async Task< Dictionary< int, ShipTo > > GetShipInfoAsync( IEnumerable< LightspeedOrder > orders, CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetShipInfoAsync);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Started getting shipping info for orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Started getting shipping info for orders" );
 
 			var shipIds = orders.Select( o => o.ShipToId ).ToHashSet();
 			var getShipInfoRequest = new GetShipInfoRequest( shipIds );
@@ -191,14 +184,13 @@ namespace LightspeedAccess
 			if( response != null )
 				result = response.Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).Where( x => x.Item1 != 0 ).ToDictionary( x => x.Item1, x => x.Item2 );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {result.Count} shipping info entries" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {result.Count} shipping info entries" );
 			return result;
 		}
 
 		public async Task< IEnumerable< LightspeedOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo, CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetOrdersAsync);
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Started getting orders from lightspeed from {dateFrom} to {dateTo}" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Started getting orders from lightspeed from {dateFrom} to {dateTo}" );
 
 			var getSalesRequest = new GetSalesRequest( dateFrom, dateTo );
 
@@ -211,12 +203,12 @@ namespace LightspeedAccess
 			if( rawOrders.Count == 0 )
 				return rawOrders;
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, $"Got {rawOrders.Count} raw orders" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, $"Got {rawOrders.Count} raw orders" );
 
 			var items = await this.GetItemsAsync( rawOrders, ctx );
 			var shopsNames = await this.GetShopNamesAsync( ctx );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Adding shop info, sale lines and ship info to raw orders..." );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Adding shop info, sale lines and ship info to raw orders..." );
 			rawOrders.ForEach( o =>
 			{
 				if( o.SaleLines != null && items.Count() != 0 )
@@ -233,7 +225,7 @@ namespace LightspeedAccess
 					o.ShopName = shopsNames.GetValue( o.ShopId );
 			} );
 
-			LightspeedLogger.Debug( this._syncRunContext, CallerType, callerMethodName, "Retrieving orders completed" );
+			LightspeedLogger.Debug( this._syncRunContext, CallerType, "Retrieving orders completed" );
 			return rawOrders;
 		}
 	}

@@ -16,7 +16,7 @@ namespace LightspeedAccess.Misc
 		{
 			return ActionPolicy.Handle< Exception >().Retry( 10, ( ex, i ) =>
 			{
-				LightspeedLogger.Error( ex, syncRunContext, nameof(ActionPolicies), nameof(SubmitPolicy),
+				LightspeedLogger.Error( ex, syncRunContext, nameof(ActionPolicies),
 					$"Retrying Lightspeed API submit call for the {i} time" );
 				
 				if( !LightspeedAuthService.IsUnauthorizedException( ex ) && !WebRequestService.IsBadRequestException( ex ) )
@@ -30,7 +30,7 @@ namespace LightspeedAccess.Misc
 		{
 			return ActionPolicyAsync.Handle< Exception >().RetryAsync( 10, async ( ex, i ) =>
 			{
-				LightspeedLogger.Error( ex, syncRunContext, nameof(ActionPolicies), nameof(SubmitPolicyAsync),
+				LightspeedLogger.Error( ex, syncRunContext, nameof(ActionPolicies),
 					$"Retrying Lightspeed API submit call for the {i} time" );
 
 				if( !LightspeedAuthService.IsUnauthorizedException( ex ) && !WebRequestService.IsBadRequestException( ex ) )

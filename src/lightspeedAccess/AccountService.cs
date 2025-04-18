@@ -19,7 +19,7 @@ namespace lightspeedAccess
 
 		public int GetAccountId( SyncRunContext syncRunContext )
 		{
-			LightspeedLogger.Debug( syncRunContext, nameof(AccountService), nameof(this.GetAccountId), "Started getting account Id for current session" );
+			LightspeedLogger.Debug( syncRunContext, nameof(AccountService), "Started getting account Id for current session" );
 			var request = new GetAccountRequest();
 			return this._webRequestServices.GetResponse< LightspeedAccountList >( request, syncRunContext ).Account.First().AccountId;
 		}

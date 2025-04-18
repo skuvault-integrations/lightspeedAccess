@@ -39,63 +39,58 @@ namespace LightspeedAccess
 
 		public IEnumerable< Shop > GetShops()
 		{
-			const string callerMethodName = nameof(GetShops);
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Starting to get Shops" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Starting to get Shops" );
 
 			var getShopsRequest = new GetShopRequest();
 			var shops = this._webRequestServices.GetResponse< ShopsList >( getShopsRequest, _syncRunContext ).Shop;
 			if( shops == null )
 				return new List< Shop >();
 
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, $"Retrieved {shops.Length} shops" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, $"Retrieved {shops.Length} shops" );
 			return shops.ToList();
 		}
 
 		public async Task< IEnumerable< Shop > > GetShopsAsync( CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetShopsAsync);
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Starting to get Shops" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Starting to get Shops" );
 
 			var getShopsRequest = new GetShopRequest();
 			var shops = ( await this._webRequestServices.GetResponseAsync< ShopsList >( getShopsRequest, _syncRunContext, ctx ) ).Shop;
 			if( shops == null )
 				return new List< Shop >();
 
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, $"Retrieved {shops.Length} shops" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, $"Retrieved {shops.Length} shops" );
 			return shops.ToList();
 		}
 
 		public void UpdateOnHandQuantity( int itemId, int shopId, int itemShopRelationId, int quantity, string logComment = null )
 		{
-			const string callerMethodName = nameof(UpdateOnHandQuantity);
 			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}", 
 				itemId, shopId, itemShopRelationId, quantity, ( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment );
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Starting update shop item quantity. " + paramInfo );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Starting update shop item quantity. " + paramInfo );
 
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			this._webRequestServicesForUpdating.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest, _syncRunContext );
 
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Quantity updated successfully. " + paramInfo );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Quantity updated successfully. " + paramInfo );
 		}
 
 		public async Task UpdateOnHandQuantityAsync( int itemId, int shopId, int itemShopRelationId, int quantity, 
 			CancellationToken ctx, string logComment = null )
 		{
-			const string callerMethodName = nameof(UpdateOnHandQuantityAsync);
 			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}",
 				itemId, shopId, itemShopRelationId, quantity, ( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment );
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Starting update shop item quantity. " + paramInfo );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Starting update shop item quantity. " + paramInfo );
 
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			await this._webRequestServicesForUpdating.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, _syncRunContext, ctx );
 
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Quantity updated successfully. " + paramInfo );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Quantity updated successfully. " + paramInfo );
 		}
 
 		public async Task< IDictionary< string, LightspeedProduct > > GetItems( IEnumerable< string > itemSkusFull, CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetItems);
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Starting to get item sku index" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Starting to get item sku index" );
 			var itemSkusPartitioned = itemSkusFull.ToList().Partition( 100 );
 
 			var dictionary = new Dictionary< string, LightspeedProduct >();
@@ -112,7 +107,7 @@ namespace LightspeedAccess
 			{
 				if ( t.Result.Item != null )
 				{
-					LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, $"Got {t.Result.Item.Length} entries in item sku index" );
+					LightspeedLogger.Debug( _syncRunContext, CallerType, $"Got {t.Result.Item.Length} entries in item sku index" );
 					t.Result.Item.ToList().Distinct().ForEach( i =>
 					{
 						dictionary[ i.Sku ] = i;
@@ -132,7 +127,7 @@ namespace LightspeedAccess
 
 		public async Task< bool > DoesItemExistAsync( int itemId, CancellationToken ctx )
 		{
-			LightspeedLogger.Debug( _syncRunContext, CallerType, nameof(DoesItemExistAsync), $"Checking, if item {itemId} exists" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, $"Checking, if item {itemId} exists" );
 			var request = new GetItemRequest( itemId );
 			var response = await this._webRequestServices.GetResponseAsync< LightspeedProduct >( request, _syncRunContext, ctx );
 			return response != null;
@@ -140,14 +135,13 @@ namespace LightspeedAccess
 
 		public async Task< IEnumerable< LightspeedProduct > > GetItemsCreatedInShopAsync( int shopId, DateTime createTimeUtc, CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetItemsCreatedInShopAsync);
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName,string.Format( "Getting items, created in shop {0} after {1}", 
+			LightspeedLogger.Debug( _syncRunContext, CallerType, string.Format( "Getting items, created in shop {0} after {1}", 
 				shopId, createTimeUtc ) );
 
 			var getItemRequest = new GetItemsRequest( shopId, createTimeUtc );
 			var result = await this.ExecuteGetItemsRequest( getItemRequest, ctx );
 
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, string.Format( "Getting {0} items updated after {1} in shop {2}", 
+			LightspeedLogger.Debug( _syncRunContext, CallerType, string.Format( "Getting {0} items updated after {1} in shop {2}", 
 				result.Count(), createTimeUtc, shopId ) );
 			return result;
 		}
@@ -160,15 +154,14 @@ namespace LightspeedAccess
 
 		public async Task< IEnumerable< int > > GetExistingItemsIdsAsync( List< int > itemIds, CancellationToken ctx )
 		{
-			LightspeedLogger.Debug( _syncRunContext, CallerType, nameof(GetExistingItemsIdsAsync), $"Checking, if items {itemIds.ToJson()} exists" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, $"Checking, if items {itemIds.ToJson()} exists" );
 			var existingProducts = await this.GetItemsAsync( itemIds.ToHashSet(), ctx );
 			return existingProducts.Select( p => p.ItemId );
 		}
 
 		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( HashSet< int > itemIdsFull, CancellationToken ctx )
 		{
-			const string callerMethodName = nameof(GetItemsAsync);
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, "Started getting products by IDs" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, "Started getting products by IDs" );
 
 			if( itemIdsFull.Count == 0 )
 				return new List< LightspeedProduct >();
@@ -183,7 +176,7 @@ namespace LightspeedAccess
 					result.AddRange( response.Item );
 			}
 
-			LightspeedLogger.Debug( _syncRunContext, CallerType, callerMethodName, $"Got {result.Count} products by IDs" );
+			LightspeedLogger.Debug( _syncRunContext, CallerType, $"Got {result.Count} products by IDs" );
 			return result;
 		}
 
