@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Web.Management;
 using LightspeedAccess;
 using LightspeedAccess.Models.Configuration;
 using NUnit.Framework;
+using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccessTests.Products
 {
@@ -14,18 +13,20 @@ namespace lightspeedAccessTests.Products
 		private LightspeedFactory _factory;
 		private LightspeedConfig _config;
 
+		private static SyncRunContext SyncRunContext => new SyncRunContext( 1, 2, Guid.NewGuid().ToString() );
+
 		[ SetUp ]
 		public void Init()
 		{
-			var credentials = new Credentials.TestsCredentials(@"..\..\Files\lightspeedCredentials.csv");
-			this._factory = new LightspeedFactory(credentials.ClientId, credentials.ClientSecret, "");
-			this._config = new LightspeedConfig(credentials.AccountId, credentials.AccessToken, credentials.RefreshToken);
+			var credentials = new Credentials.TestsCredentials( @"..\..\Files\lightspeedCredentials.csv" );
+			this._factory = new LightspeedFactory( credentials.ClientId, credentials.ClientSecret, "" );
+			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken );
 		}
 
 		[ Test ]
 		public void GetProductsAsync()
 		{
-			var service = _factory.CreateProductsService( _config );
+			var service = _factory.CreateProductsService( _config, SyncRunContext );
 
 			var cSource = new CancellationTokenSource();
 

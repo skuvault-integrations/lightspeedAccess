@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,21 +8,19 @@ using LightspeedAccess.Models.Configuration;
 using LightspeedAccess.Models.Product;
 using LightspeedAccess.Models.Request;
 using LightspeedAccess.Services;
+using SkuVault.Integrations.Core.Common;
 
 namespace LightspeedAccess
 {
 	public class LightspeedProductsService: ILightspeedProductsService
 	{
 		private readonly WebRequestService _webRequestServices;
-		private readonly LightspeedConfig _config;
-		private readonly int _accountId;
+		private readonly SyncRunContext _syncRunContext;
 
-		public LightspeedProductsService( LightspeedConfig config, LightspeedAuthService authService )
+		public LightspeedProductsService( LightspeedConfig config, LightspeedAuthService authService, SyncRunContext syncRunContext )
 		{
-			LightspeedLogger.Debug( $"Started LightspeedProductsService with config {config}", this._accountId );
-			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync( config.AccountId ), authService );
-			this._config = config;
-			this._accountId = this._config.AccountId;
+			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync( config.AccountId, syncRunContext ), authService );
+			this._syncRunContext = syncRunContext;
 		}
 
 		public async Task< IEnumerable< LightspeedFullProduct > > GetProductsAsync( int shopId, CancellationToken ctx )
@@ -50,7 +47,7 @@ namespace LightspeedAccess
 		private async Task< IEnumerable< LightspeedFullProduct > > ExecuteGetProductsRequest( GetProductsRequest request, CancellationToken ctx )
 		{
 			var result = new List< LightspeedFullProduct >();
-			var response = await this._webRequestServices.GetResponseAsync< LightspeedFullProductList >( request, ctx );
+			var response = await this._webRequestServices.GetResponseAsync< LightspeedFullProductList >( request, _syncRunContext, ctx );
 			if( response.Item != null )
 				result = response.Item.ToList();
 			return result;
@@ -59,7 +56,7 @@ namespace LightspeedAccess
 		private async Task< IEnumerable< LightspeedVendor > > ExecuteGetVendorsRequest( GetVendorsRequest request, CancellationToken ctx )
 		{
 			var result = new List< LightspeedVendor >();
-			var response = await this._webRequestServices.GetResponseAsync< LightspeedVendorList >( request, ctx );
+			var response = await this._webRequestServices.GetResponseAsync< LightspeedVendorList >( request, _syncRunContext, ctx );
 			if( response.Vendor != null )
 				result = response.Vendor.ToList();
 			return result;

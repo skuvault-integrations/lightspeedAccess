@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccess
 {
 	public interface IAccountService
 	{
-		int GetAccoundId();
+		int GetAccountId( SyncRunContext syncRunContext );
 	}
 }

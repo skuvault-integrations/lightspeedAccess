@@ -22,10 +22,11 @@ $src_dir = "$BuildRoot\src"
 $solution_file = "$src_dir\$($project_name).sln"
 	
 # Use MSBuild.
-Set-Alias MSBuild16 (Join-Path -Path (Get-VSSetupInstance | Where-Object {$_.DisplayName -eq 'Visual Studio Professional 2019'} | select InstallationPath | Select-Object -first 1).InstallationPath -ChildPath "MSBuild\Current\Bin\MSBuild.exe")
+# Requires PowerShell command: Install-Module VSSetup -Scope CurrentUser
+Set-Alias MSBuild (Join-Path -Path (Get-VSSetupInstance | select InstallationPath | Select-Object -first 1).InstallationPath -ChildPath "MSBuild\Current\Bin\MSBuild.exe")
 
 task Clean { 
-	exec { MSBuild16 "$solution_file" /t:Clean /p:Configuration=Release /v:quiet } 
+	exec { MSBuild "$solution_file" /t:Clean /p:Configuration=Release /v:quiet } 
 	Remove-Item -force -recurse $build_dir -ErrorAction SilentlyContinue | Out-Null
 }
 
@@ -36,7 +37,7 @@ task Init Clean, {
 }
 
 task Build {
-	exec { MSBuild16 "$solution_file" /t:Build /p:Configuration=Release /v:minimal /p:OutDir="$build_artifacts_dir\" }
+	exec { MSBuild "$solution_file" /t:Build /p:Configuration=Release /v:minimal /p:OutDir="$build_artifacts_dir\" }
 }
 
 task Package  {
@@ -66,7 +67,7 @@ task NuGet Package, Version, {
 <package>
 	<metadata>
 		<id>$project_name</id>
-		<version>$Version</version>
+		<version>$Version-alpha</version>
 		<authors>SkuVault</authors>
 		<owners>SkuVault</owners>
 		<projectUrl>https://github.com/agileharbor/$project_name</projectUrl>
@@ -74,6 +75,7 @@ task NuGet Package, Version, {
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<copyright>Copyright (C) SkuVault Inc. 2021</copyright>
 		<summary>$text</summary>
+		<repository type="git" url="https://github.com/skuvault-integrations/lightspeedAccess.git" />
 		<description>$text</description>
 		<tags>$project_short_name</tags>
 		<dependencies> 
