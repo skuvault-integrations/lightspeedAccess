@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using LightspeedAccess.Misc;
-using System.Web.Script.Serialization;
-using lightspeedAccess.Models.Auth;
-using Netco.Extensions;
-using SkuVault.Integrations.Core.Common;
 using lightspeedAccess.Helpers;
+using lightspeedAccess.Models.Auth;
+using LightspeedAccess.Misc;
+using Netco.Extensions;
+using Newtonsoft.Json;
+using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccess
 {
@@ -103,10 +103,9 @@ namespace lightspeedAccess
 			var responseJson = reader.ReadToEnd();
 
 			LightspeedLogger.Debug( syncRunContext, CallerType, "Response stream reading complete. Starting deserialization" );
-			var serializer = new JavaScriptSerializer();
-			var jsonDictionary = ( IDictionary< string, object > )serializer.DeserializeObject( responseJson );
+			var jsonDictionary = JsonConvert.DeserializeObject< Dictionary< string, object > >( responseJson );
 			var accessToken = ( string )jsonDictionary[ "access_token" ];
-			var refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : String.Empty;
+			var refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : string.Empty;
 
 			var sanitizedAccessToken = TokenSanitizer.SanitizeToken( accessToken );
 			LightspeedLogger.Debug( syncRunContext, CallerType, $"Deserialization completed successfully, your token is {sanitizedAccessToken}" );

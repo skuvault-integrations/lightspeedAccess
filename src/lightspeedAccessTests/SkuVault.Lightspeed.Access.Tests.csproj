@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<AssemblyTitle>SkuVault.Lightspeed.Access.Tests</AssemblyTitle>
+		<Product>SkuVault.Lightspeed.Access.Tests</Product>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\LightspeedAccess\SkuVault.Lightspeed.Access.csproj" />
+	</ItemGroup>
+</Project>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using LightspeedAccess;
 using LightspeedAccess.Models.Configuration;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccessTests.Shops

@@ -1,0 +1,19 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AnalysisMode>Recommended</AnalysisMode>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<LangVersion>latest</LangVersion>
+		<Platforms>x64</Platforms>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<Authors>Linnworks</Authors>
+		<Company>Linnworks, Inc.</Company>
+		<Copyright>Copyright © 2025 Linnworks, Inc.</Copyright>
+		<RepositoryUrl>https://github.com/skuvault-integrations/lightspeedAccess</RepositoryUrl>
+	</PropertyGroup>
+</Project>
