@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkuVault.Lightspeed.Access", "lightspeedAccess\SkuVault.Lightspeed.Access.csproj", "{433B0676-D4EA-4E46-8A91-A11F6459453A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkuVault.Lightspeed.Access", "SkuVault.Lightspeed.Access\SkuVault.Lightspeed.Access.csproj", "{433B0676-D4EA-4E46-8A91-A11F6459453A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkuVault.Lightspeed.Access.Tests", "lightspeedAccessTests\SkuVault.Lightspeed.Access.Tests.csproj", "{EEDDE032-B41E-47C5-9522-93F30F2525C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkuVault.Lightspeed.Access.Tests", "tests\SkuVault.Lightspeed.Access.Tests\SkuVault.Lightspeed.Access.Tests.csproj", "{EEDDE032-B41E-47C5-9522-93F30F2525C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

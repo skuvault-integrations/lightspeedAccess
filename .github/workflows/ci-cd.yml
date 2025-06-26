@@ -15,6 +15,8 @@ jobs:
     env:
       BUILD_CONFIG: 'Release'
       SOLUTION_NAME: '.\src\SkuVault.Lightspeed.Access.sln'
+      TESTS_PROJECT_NAME: '.\src\tests\SkuVault.Lightspeed.Access.Tests\SkuVault.Lightspeed.Access.Tests.csproj'
+      DOTCOVER_OUTPUT: 'test-results/SkuVault.Lightspeed.Access.Tests.html'
 
     runs-on: ubuntu-latest
 
@@ -49,7 +51,7 @@ jobs:
         run: dotnet build $SOLUTION_NAME --configuration $BUILD_CONFIG -p:Version=$BUILD_VERSION --no-restore
 
       - name: Unit tests
-        run: dotnet dotcover test --no-restore --verbosity normal --dcReportType=HTML --dcOutput="test-results/SkuVault.Lightspeed.Access.Tests.html" ".\src\tests\LightspeedAccessTests\SkuVault.Lightspeed.Access.Tests.csproj"
+        run: dotnet dotcover test --no-restore --verbosity normal --dcReportType=HTML --dcOutput=$DOTCOVER_OUTPUT $TESTS_PROJECT_NAME
 
       - name: Archive code coverage report
         uses: actions/upload-artifact@v4
@@ -62,8 +64,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags')
         run: |
           dotnet nuget remove source "SkuVault Integrations (GitHub)"
-          dotnet nuget add source --username SkuVault --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/skuvault-integrations/index.json"
+          dotnet nuget add source https://nuget.pkg.github.com/skuvault-integrations/index.json --name "SkuVault Push (GitHub)" --username SkuVault-Integrations --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
 
       - name: Publish to package repository
         if: startsWith(github.ref, 'refs/tags')
-        run: dotnet nuget push **\*.$BUILD_VERSION.nupkg --source "github"
+        run: dotnet nuget push **\*.$BUILD_VERSION.nupkg --source "SkuVault Push (GitHub)"
