@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	public class GetProductsRequest: LightspeedRequest, IRequestPagination
 	{

@@ -6,16 +6,20 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using lightspeedAccess;
+using lightspeedAccess.Extensions;
 using lightspeedAccess.Misc;
-using lightspeedAccess.Models.Configuration;
-using lightspeedAccess.Models.Product;
 using lightspeedAccess.Models.Request;
 using lightspeedAccess.Models.Shop;
-using lightspeedAccess.Services;
+using LightspeedAccess.Misc;
+using LightspeedAccess.Models.Configuration;
+using LightspeedAccess.Models.Product;
+using LightspeedAccess.Models.Request;
+using LightspeedAccess.Models.Shop;
+using LightspeedAccess.Services;
 using SkuVault.Integrations.Core.Common;
-using lightspeedAccess.Extensions;
 
-namespace lightspeedAccess
+namespace LightspeedAccess
 {
 	public class LightspeedShopService: ILightspeedShopService
 	{

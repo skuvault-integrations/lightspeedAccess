@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
-namespace lightspeedAccess.Models.Product
+namespace LightspeedAccess.Models.Product
 {
 	[ XmlType( "Image" ) ]
 	[ DataContract ]

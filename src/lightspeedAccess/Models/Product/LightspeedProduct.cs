@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using lightspeedAccess.Models.Request;
+using LightspeedAccess.Models.Request;
 
-namespace lightspeedAccess.Models.Product
+namespace LightspeedAccess.Models.Product
 {
 	[ XmlType( "Item" ) ]
 	[ DataContract ]

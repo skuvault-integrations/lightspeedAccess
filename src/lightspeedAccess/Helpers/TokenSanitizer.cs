@@ -39,10 +39,10 @@ namespace lightspeedAccess.Helpers
 		/// Partially mask token in a string 
 		/// If the token length is less than expected, it masks the entire token.
 		/// </summary>
-		/// <param name="token">The input string containing the token.</param>
+		/// <param name="input">The input string containing the token.</param>
 		/// <returns>A string with the token partially masked, or the original string if no token is found.</returns>
 		public static string SanitizeToken(string token)
-        {
+		{
             if (string.IsNullOrEmpty(token) || token.Length < 3)
                 return token;
 

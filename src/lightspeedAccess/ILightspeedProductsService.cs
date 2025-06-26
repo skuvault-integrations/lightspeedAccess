@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using lightspeedAccess.Models.Product;
+using LightspeedAccess.Models.Product;
 
-namespace lightspeedAccess
+namespace LightspeedAccess
 {
 	public interface ILightspeedProductsService
 	{

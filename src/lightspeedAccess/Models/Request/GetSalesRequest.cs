@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	public class GetSalesRequest: LightspeedRequest, IRequestPagination
 	{

@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	public class GetShipInfoRequest: LightspeedRequest
 	{

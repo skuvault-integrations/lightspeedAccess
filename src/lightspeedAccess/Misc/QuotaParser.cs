@@ -1,4 +1,5 @@
 using System.Net;
+using lightspeedAccess.Models;
 using lightspeedAccess.Models.Common;
 
 namespace lightspeedAccess.Misc

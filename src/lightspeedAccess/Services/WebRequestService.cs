@@ -6,14 +6,16 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using lightspeedAccess;
 using lightspeedAccess.Helpers;
 using lightspeedAccess.Misc;
-using lightspeedAccess.Models.Configuration;
 using lightspeedAccess.Models.Request;
-using lightspeedAccess;
+using LightspeedAccess.Misc;
+using LightspeedAccess.Models.Configuration;
+using LightspeedAccess.Models.Request;
 using SkuVault.Integrations.Core.Common;
 
-namespace lightspeedAccess.Services
+namespace LightspeedAccess.Services
 {
 	internal class WebRequestService
 	{

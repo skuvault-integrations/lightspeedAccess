@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace lightspeedAccess.Models.ShippingInfo
+namespace LightspeedAccess.Models.ShippingInfo
 {
 	[ XmlType( "ShipTo" ) ]
 	public class ShipTo
