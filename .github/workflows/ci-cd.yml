@@ -14,9 +14,9 @@ jobs:
     
     env:
       BUILD_CONFIG: 'Release'
-      SOLUTION_NAME: '.\src\SkuVault.Lightspeed.Access.sln'
-      TESTS_PROJECT_NAME: '.\src\tests\SkuVault.Lightspeed.Access.Tests\SkuVault.Lightspeed.Access.Tests.csproj'
-      DOTCOVER_OUTPUT: 'test-results/SkuVault.Lightspeed.Access.Tests.html'
+      SOLUTION_NAME: '.\src\lightspeedAccess.sln'
+      TESTS_PROJECT_NAME: '.\src\lightspeedAccessTests\lightspeedAccessTests.csproj'
+      DOTCOVER_OUTPUT: 'test-results/lightspeedAccessTests.html'
 
     runs-on: ubuntu-latest
 
