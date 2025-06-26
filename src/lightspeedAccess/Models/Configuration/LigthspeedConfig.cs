@@ -1,4 +1,4 @@
-﻿namespace LightspeedAccess.Models.Configuration
+﻿namespace lightspeedAccess.Models.Configuration
 {
 	public class LightspeedConfig
 	{

@@ -1,8 +1,7 @@
-﻿using lightspeedAccess;
-using LightspeedAccess.Models.Configuration;
+﻿using lightspeedAccess.Models.Configuration;
 using SkuVault.Integrations.Core.Common;
 
-namespace LightspeedAccess
+namespace lightspeedAccess
 {
 	public interface ILightspeedFactory
 	{

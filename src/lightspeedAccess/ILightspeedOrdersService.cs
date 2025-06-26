@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using LightspeedAccess.Models.Order;
+using lightspeedAccess.Models.Order;
 
-namespace LightspeedAccess
+namespace lightspeedAccess
 {
 	public interface ILightspeedOrdersService
 	{

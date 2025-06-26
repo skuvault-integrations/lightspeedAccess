@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace LightspeedAccess.Models.ShippingInfo
+namespace lightspeedAccess.Models.ShippingInfo
 {
 	[ XmlType( "Customer" ) ]
 	public class Customer

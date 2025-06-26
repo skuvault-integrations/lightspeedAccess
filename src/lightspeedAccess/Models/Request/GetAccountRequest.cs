@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LightspeedAccess.Models.Request;
+﻿using System.Collections.Generic;
 
 namespace lightspeedAccess.Models.Request
 {

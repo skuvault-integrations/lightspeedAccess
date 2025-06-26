@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
-namespace LightspeedAccess.Models.Product
+namespace lightspeedAccess.Models.Product
 {
 	[ XmlType( "Manufacturer" ) ]
 	[ DataContract ]

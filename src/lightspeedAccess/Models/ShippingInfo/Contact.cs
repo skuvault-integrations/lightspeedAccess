@@ -1,8 +1,6 @@
 ﻿using System.Xml.Serialization;
-using lightspeedAccess.Models.ShippingInfo;
-using LightspeedAccess.Models.Order;
 
-namespace LightspeedAccess.Models.ShippingInfo
+namespace lightspeedAccess.Models.ShippingInfo
 {
 	[ XmlType( "Contact" ) ]
 	public class Contact

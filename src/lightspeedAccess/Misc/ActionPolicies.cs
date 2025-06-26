@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using lightspeedAccess;
-using LightspeedAccess.Services;
+using lightspeedAccess.Services;
 using Polly;
 using Polly.Retry;
 using SkuVault.Integrations.Core.Common;
 
-namespace LightspeedAccess.Misc
+namespace lightspeedAccess.Misc
 {
 	internal class ActionPolicies
 	{

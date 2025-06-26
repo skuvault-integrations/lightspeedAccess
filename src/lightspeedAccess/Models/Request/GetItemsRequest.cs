@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LightspeedAccess.Models.Request
+namespace lightspeedAccess.Models.Request
 {
 	public class GetItemsRequest: LightspeedRequest, IRequestPagination
 	{

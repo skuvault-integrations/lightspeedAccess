@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using lightspeedAccess;
-using LightspeedAccess.Misc;
-using LightspeedAccess.Models.Configuration;
-using LightspeedAccess.Models.Order;
-using LightspeedAccess.Models.Product;
-using LightspeedAccess.Models.Request;
-using LightspeedAccess.Models.ShippingInfo;
-using LightspeedAccess.Models.Shop;
-using LightspeedAccess.Services;
+using lightspeedAccess.Misc;
+using lightspeedAccess.Models.Configuration;
+using lightspeedAccess.Models.Order;
+using lightspeedAccess.Models.Product;
+using lightspeedAccess.Models.Request;
+using lightspeedAccess.Models.ShippingInfo;
+using lightspeedAccess.Models.Shop;
+using lightspeedAccess.Services;
 using SkuVault.Integrations.Core.Common;
 using lightspeedAccess.Extensions;
 
-namespace LightspeedAccess
+namespace lightspeedAccess
 {
 	public class LightspeedOrdersService: ILightspeedOrdersService
 	{

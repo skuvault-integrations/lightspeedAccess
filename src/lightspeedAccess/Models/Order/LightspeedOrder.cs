@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
-using LightspeedAccess.Models.Common;
-using LightspeedAccess.Models.Product;
-using LightspeedAccess.Models.Request;
-using LightspeedAccess.Models.ShippingInfo;
+using lightspeedAccess.Models.Common;
+using lightspeedAccess.Models.Product;
+using lightspeedAccess.Models.Request;
+using lightspeedAccess.Models.ShippingInfo;
 
-namespace LightspeedAccess.Models.Order
+namespace lightspeedAccess.Models.Order
 {
 	[ XmlType( "Sale" ) ]
 	public class LightspeedOrder

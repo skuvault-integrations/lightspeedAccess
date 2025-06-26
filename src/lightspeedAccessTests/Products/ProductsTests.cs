@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using LightspeedAccess;
-using LightspeedAccess.Models.Configuration;
+using lightspeedAccess;
+using lightspeedAccess.Models.Configuration;
 using NUnit.Framework;
 using SkuVault.Integrations.Core.Common;
 
