@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using SkuVault.Integrations.Core.Common;
 
-namespace lightspeedAccess.Misc
+namespace LightspeedAccess.Misc
 {
 	internal static class LightspeedLogger
 	{

@@ -1,9 +1,9 @@
 ﻿using System.Linq;
-using lightspeedAccess.Misc;
 using lightspeedAccess.Models.Account;
-using lightspeedAccess.Models.Configuration;
 using lightspeedAccess.Models.Request;
-using lightspeedAccess.Services;
+using LightspeedAccess.Misc;
+using LightspeedAccess.Models.Configuration;
+using LightspeedAccess.Services;
 using SkuVault.Integrations.Core.Common;
 
 namespace lightspeedAccess

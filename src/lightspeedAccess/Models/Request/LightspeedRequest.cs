@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using lightspeedAccess.Models.Configuration;
+using LightspeedAccess.Models.Configuration;
 
-namespace lightspeedAccess.Models.Request
+namespace LightspeedAccess.Models.Request
 {
 	public abstract class LightspeedRequest
 	{

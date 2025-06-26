@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using lightspeedAccess.Misc;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using SkuVault.Integrations.Core.Common;
 using Polly;
 using Polly.Retry;
 
-namespace lightspeedAccess.Misc
+namespace LightspeedAccess.Misc
 {
 	public sealed class ThrottlerAsync
 	{

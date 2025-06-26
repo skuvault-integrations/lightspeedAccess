@@ -1,7 +1,7 @@
 ﻿using System.Xml.Serialization;
-using lightspeedAccess.Models.Common;
+using LightspeedAccess.Models.Common;
 
-namespace lightspeedAccess.Models.Order
+namespace LightspeedAccess.Models.Order
 {
 	[ XmlType( "SaleLine" ) ]
 	public class SaleLine

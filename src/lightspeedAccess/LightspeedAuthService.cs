@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using lightspeedAccess.Helpers;
-using lightspeedAccess.Misc;
+using LightspeedAccess.Misc;
 using lightspeedAccess.Models.Auth;
-using Newtonsoft.Json;
 using SkuVault.Integrations.Core.Common;
+using lightspeedAccess.Helpers;
+using Newtonsoft.Json;
+
 
 namespace lightspeedAccess
 {

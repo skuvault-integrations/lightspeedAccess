@@ -1,8 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
-using lightspeedAccess.Models.Request;
+using LightspeedAccess.Models.Request;
 
-namespace lightspeedAccess.Models.Shop
+namespace LightspeedAccess.Models.Shop
 {
 	[ XmlType( "Shop" ) ]
 	public class Shop

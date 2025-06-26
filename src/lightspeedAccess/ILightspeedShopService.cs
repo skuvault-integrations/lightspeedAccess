@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using lightspeedAccess.Models.Product;
-using lightspeedAccess.Models.Shop;
+using LightspeedAccess.Models.Product;
+using LightspeedAccess.Models.Shop;
 
-namespace lightspeedAccess
+namespace LightspeedAccess
 {
 	public interface ILightspeedShopService
 	{
