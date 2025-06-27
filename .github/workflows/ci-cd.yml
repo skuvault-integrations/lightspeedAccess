@@ -35,7 +35,9 @@ jobs:
           dotnet nuget add source --username ${{ secrets.SV_NUGET_OWNER}} --password ${{ secrets.NUGETTOKEN }} --store-password-in-clear-text --name github-integrations "https://nuget.pkg.github.com/skuvault-integrations/index.json"
 
       - name: Install dependencies
-        run: dotnet restore $SOLUTION_NAME
+        run: dotnet restore $SOLUTION_NAME --configfile ./src/.nuget/nuget.config
+          env:
+            NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get build version
         run: |
