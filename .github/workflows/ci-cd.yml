@@ -17,7 +17,7 @@ jobs:
     env:
       BUILD_CONFIG: 'Release'
       SOLUTION_NAME: '.\src\SkuVault.Lightspeed.Access.sln'
-      PACKAGES_ARTIFACT: lightspeed-acccess-packages
+      PACKAGES_ARTIFACT: skuvault-acccess-packages
 
     steps:
       - uses: actions/checkout@v4
@@ -35,9 +35,7 @@ jobs:
           dotnet nuget add source --username ${{ secrets.SV_NUGET_OWNER}} --password ${{ secrets.NUGETTOKEN }} --store-password-in-clear-text --name github-integrations "https://nuget.pkg.github.com/skuvault-integrations/index.json"
 
       - name: Install dependencies
-        run: dotnet restore $SOLUTION_NAME --configfile ./src/.nuget/NuGet.Config
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.NUGETTOKEN }}
+        run: dotnet restore $SOLUTION_NAME
 
       - name: Get build version
         run: |
