@@ -1,4 +1,4 @@
-name: Continuous Integration/Continous Deployment
+name: Continuous Integration/Continuous Deployment
 
 # Runs when a pull request (against master branch) is opened, reopened or when the master branch is updated or when a release tag is created.
 on:
@@ -10,31 +10,29 @@ on:
       - release/**
 
 jobs:
-  build:
-    
+  build-test:
+    name: Build | Test
+    runs-on: ubuntu-latest
+
     env:
       BUILD_CONFIG: 'Release'
       SOLUTION_NAME: '.\src\SkuVault.Lightspeed.Access.sln'
-      TESTS_PROJECT_NAME: '.\src\tests\SkuVault.Lightspeed.Access.Tests\SkuVault.Lightspeed.Access.Tests.csproj'
-      DOTCOVER_OUTPUT: 'test-results/SkuVault.Lightspeed.Access.Tests.html'
-
-    runs-on: ubuntu-latest
+      PACKAGES_ARTIFACT: lightspeed-acccess-packages
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET Core SDK 6.x
-        uses: actions/setup-dotnet@v2
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 6.x
+          dotnet-version: |
+            8.x
 
-      - name: Setup DotCover
-        run: dotnet tool install JetBrains.dotCover.GlobalTool -g
-
-      - name: Configure NuGet sources
+      - name: Add NuGet sources for restoring packages
+        if: startsWith(github.ref, 'refs/tags')
         run: |
-          dotnet nuget add source https://nuget.pkg.github.com/skuvault/index.json --name "SkuVault (GitHub)" --username ${{ secrets.GH_NUGET_USERNAME }} --password ${{ secrets.GH_NUGET_PASSWORD }} --store-password-in-clear-text
-          dotnet nuget add source https://nuget.pkg.github.com/skuvault-integrations/index.json --name "SkuVault Integrations (GitHub)" --username ${{ secrets.GH_INTEGRATIONS_NUGET_USERNAME }} --password ${{ secrets.GH_INTEGRATIONS_NUGET_PASSWORD }} --store-password-in-clear-text
+          dotnet nuget add source --username ${{ secrets.SV_NUGET_OWNER}} --password ${{ secrets.NUGETTOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/skuvault/index.json"
+          dotnet nuget add source --username ${{ secrets.SV_NUGET_OWNER}} --password ${{ secrets.NUGETTOKEN }} --store-password-in-clear-text --name github-integrations "https://nuget.pkg.github.com/skuvault-integrations/index.json"
 
       - name: Install dependencies
         run: dotnet restore $SOLUTION_NAME
@@ -51,21 +49,35 @@ jobs:
         run: dotnet build $SOLUTION_NAME --configuration $BUILD_CONFIG -p:Version=$BUILD_VERSION --no-restore
 
       - name: Unit tests
-        run: dotnet dotcover test --no-restore --verbosity normal --dcReportType=HTML --dcOutput=$DOTCOVER_OUTPUT $TESTS_PROJECT_NAME
+        run: dotnet test --no-restore --no-build --configuration $BUILD_CONFIG --verbosity normal $SOLUTION_NAME
 
-      - name: Archive code coverage report
+      - name: Upload packages (to be used in the next job)
+        if: startsWith(github.ref, 'refs/tags')
         uses: actions/upload-artifact@v4
         with:
-          name: code-coverage-report
-          path: test-results
+          name: ${{ env.PACKAGES_ARTIFACT }}
+          path: |
+             **/*.nupkg
           overwrite: true
 
-      - name: Authenticate with Github package repo
-        if: startsWith(github.ref, 'refs/tags')
-        run: |
-          dotnet nuget remove source "SkuVault Integrations (GitHub)"
-          dotnet nuget add source https://nuget.pkg.github.com/skuvault-integrations/index.json --name "SkuVault Push (GitHub)" --username SkuVault-Integrations --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+  publish-packages:
+    name: Publish packages to Github package repository
+    runs-on: ubuntu-latest
+    needs: build-test
+    if: startsWith(github.ref, 'refs/tags')
+    steps:
 
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.PACKAGES_ARTIFACT }}
+
+      - name: Add NuGet Sources for publishing packages
+        run: |
+          dotnet nuget add source --username SkuVault --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github-integrations "https://nuget.pkg.github.com/skuvault-integrations/index.json"
+      
       - name: Publish to package repository
-        if: startsWith(github.ref, 'refs/tags')
-        run: dotnet nuget push **\*.$BUILD_VERSION.nupkg --source "SkuVault Push (GitHub)"
+        run: |
+          for file in $(find . -name '*.nupkg'); do
+            dotnet nuget push "$file" --source github-integrations
+          done
