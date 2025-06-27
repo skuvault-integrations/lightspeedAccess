@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: dotnet restore $SOLUTION_NAME --configfile ./src/.nuget/NuGet.Config
         env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGETTOKEN }}
 
       - name: Get build version
         run: |
