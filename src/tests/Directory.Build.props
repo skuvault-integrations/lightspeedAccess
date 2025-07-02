@@ -1,0 +1,22 @@
+﻿<Project>
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"/> <!--Load Directory.Build.props in root directory. Otherwise msbuild will stop searching for another file-->
+
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="nunit" Version="3.13.3"/>
+		<PackageReference Include="NUnit.Analyzers" Version="3.3.0"/>
+		<PackageReference Include="NUnit3TestAdapter" Version="4.4.2"/>
+		<PackageReference Include="Serilog.Sinks.NUnit" Version="1.0.3"/>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0"/>
+
+		<PackageReference Include="AutoFixture" Version="4.17.0"/>
+		<PackageReference Include="FluentAssertions" Version="6.6.0"/>
+		<PackageReference Include="NSubstitute" Version="4.3.0"/>
+		<PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.15"/>
+	</ItemGroup>
+</Project>
