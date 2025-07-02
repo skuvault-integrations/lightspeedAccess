@@ -27,6 +27,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 			this._service = this._factory.CreateShopsService( _config, SyncRunContext );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public async Task GetShopsAsync()
 		{
@@ -35,6 +36,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 			Assert.Greater( shops.Count(), 0 );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public async Task UpdateOnHandQuantityAsync()
 		{
@@ -51,6 +53,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 			Assert.That( itemQty, Is.EqualTo( quantity ) );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public async Task GetItemsAsync_ReturnsItems_WhenCorrectSkuIsProvided()
 		{
@@ -61,6 +64,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 			Assert.Greater( items.Count, 0 );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public async Task GetItems_ReturnsItems_WhenCorrectShopIdIsProvided()
 		{
@@ -71,6 +75,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 			Assert.Greater( items.Count(), 0 );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public async Task GetExistingItemsIdsAsync_ReturnsSortedExistingItemsOnly_WhenCorrectAndFakeIdsProvided()
 		{
