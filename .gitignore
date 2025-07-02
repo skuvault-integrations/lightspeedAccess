@@ -30,7 +30,6 @@ _ReSharper*/
 *.docstates
 
 #Ignore common build files
-build
 log
 *Credentials*.csv
 
