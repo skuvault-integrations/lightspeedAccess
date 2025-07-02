@@ -22,6 +22,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Products
 			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public void GetProductsAsync()
 		{

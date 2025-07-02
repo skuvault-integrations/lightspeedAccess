@@ -23,6 +23,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Orders
 			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public void OrderServiceTest()
 		{
@@ -35,6 +36,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Orders
 			Assert.Greater( orders.Count(), 0 );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public void OrderServiceTestAsync()
 		{
@@ -50,6 +52,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Orders
 			Assert.Greater( orders.Result.Count(), 0 );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public void SingleServiceThrottlerTestAsync()
 		{
@@ -68,6 +71,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Orders
 			Assert.Greater( 5, 0 );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public void MultipleServicesThrottlerTestAsync()
 		{
@@ -96,6 +100,7 @@ namespace SkuVault.Lightspeed.Access.Tests.Orders
 			Assert.Greater( 5, 0 );
 		}
 
+		[ Explicit ]
 		[ Test ]
 		public void SmokeTest()
 		{
