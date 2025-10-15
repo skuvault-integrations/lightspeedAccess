@@ -92,7 +92,7 @@ namespace SkuVault.Lightspeed.Access
 				stOut.Close();
 			}
 
-			LightspeedLogger.Info( syncRunContext, CallerType, $"Request body created sucessfully, sending it to server: {data}, Token:{sanitizedToken}" );
+			LightspeedLogger.Info( syncRunContext, CallerType, $"Request body created successfully, sending it to server: {data}, Token:{sanitizedToken}" );
 
 			var response = request.GetResponse();
 			LightspeedLogger.Info( syncRunContext, CallerType, "Successfully got response from server, reading response stream" );

@@ -93,7 +93,7 @@ namespace SkuVault.Lightspeed.Access.Services
 				LightspeedLogger.Info( syncRunContext, CallerType, $"Got response from server for request {request}, starting deserialization" );
 				var deserializer = new XmlSerializer( typeof( T ) );
 				var result = ( T ) deserializer.Deserialize( stream );
-				LightspeedLogger.Info( syncRunContext, CallerType, $"Successfylly deserialized response for request {request}. Response: {response.ToJson()}" );
+				LightspeedLogger.Info( syncRunContext, CallerType, $"Successfully deserialized response for request {request}. Response: {response.ToJson()}" );
 
 				var possibleAdditionalResponses = this.IterateThroughPagination( request, result, syncRunContext );
 
