@@ -27,10 +27,10 @@ namespace SkuVault.Lightspeed.Access.Misc
 			VersionInfo = FileVersionInfo.GetVersionInfo( assembly.Location ).FileVersion;
 		}
 
-		public static void Debug( SyncRunContext syncRunContext, string callerType, string message,
+		public static void Info( SyncRunContext syncRunContext, string callerType, string message,
 			[CallerMemberName] string callerMethodName = null )
 		{
-			Log.LogDebug( FormatMessage( syncRunContext, callerType, callerMethodName, message ) );
+			Log.LogInformation( FormatMessage( syncRunContext, callerType, callerMethodName, message ) );
 		}
 
 		public static void Error( SyncRunContext syncRunContext, string callerType, string message,

@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using SkuVault.Lightspeed.Access;
 using SkuVault.Lightspeed.Access.Helpers;
 using SkuVault.Lightspeed.Access.Misc;
 using SkuVault.Lightspeed.Access.Models.Request;
@@ -35,7 +34,7 @@ namespace SkuVault.Lightspeed.Access.Services
 
 			if( body == null )
 				return;
-			LightspeedLogger.Debug( syncRunContext, CallerType, $"Creating request body from stream for request {request}" );
+			LightspeedLogger.Info( syncRunContext, CallerType, $"Creating request body from stream for request {request}" );
 
 			webRequest.Method = "PUT";
 
@@ -47,7 +46,7 @@ namespace SkuVault.Lightspeed.Access.Services
 			{
 				var s = sr.ReadToEnd();
 
-				LightspeedLogger.Debug( syncRunContext, CallerType, $"Created request body for request {request} : {s}" );
+				LightspeedLogger.Info( syncRunContext, CallerType, $"Created request body for request {request} : {s}" );
 
 				webRequest.ContentLength = s.Length;
 				using( var dataStream = webRequest.GetRequestStream() )
@@ -65,9 +64,9 @@ namespace SkuVault.Lightspeed.Access.Services
 
 		public T GetResponse< T >( LightspeedRequest request, SyncRunContext syncRunContext )
 		{
-			LightspeedLogger.Debug( syncRunContext, CallerType, $"Making request {request} to lightspeed server" );
+			LightspeedLogger.Info( syncRunContext, CallerType, $"Making request {request} to lightspeed server" );
 
-			var webRequestAction = new Func< WebResponse >( () =>
+			var webRequestAction = new Func< WebResponse >(() =>
 				{
 					var webRequest = this.CreateHttpWebRequest( this._config.Endpoint + request.GetUri(), syncRunContext );
 					ManageRequestBody( request, ref webRequest, syncRunContext );
@@ -91,16 +90,16 @@ namespace SkuVault.Lightspeed.Access.Services
 			{
 				var stream = response.GetResponseStream();
 
-				LightspeedLogger.Debug( syncRunContext, CallerType, $"Got response from server for request {request}, starting deserialization" );
+				LightspeedLogger.Info( syncRunContext, CallerType, $"Got response from server for request {request}, starting deserialization" );
 				var deserializer = new XmlSerializer( typeof( T ) );
 				var result = ( T ) deserializer.Deserialize( stream );
-				LightspeedLogger.Debug( syncRunContext, CallerType, $"Successfylly deserialized response for request {request}. Response: {response.ToJson()}" );
+				LightspeedLogger.Info( syncRunContext, CallerType, $"Successfully deserialized response for request {request}. Response: {response.ToJson()}" );
 
 				var possibleAdditionalResponses = this.IterateThroughPagination( request, result, syncRunContext );
 
 				if( result is IPaginatedResponse aggregatedResult )
 				{
-					LightspeedLogger.Debug( syncRunContext, CallerType, $"Aggregating paginated results for request {request}" );
+					LightspeedLogger.Info( syncRunContext, CallerType, $"Aggregating paginated results for request {request}" );
 					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
 				}
 
@@ -111,7 +110,7 @@ namespace SkuVault.Lightspeed.Access.Services
 
 		public async Task< T > GetResponseAsync< T >( LightspeedRequest request, SyncRunContext syncRunContext, CancellationToken ctx )
 		{
-			LightspeedLogger.Debug( syncRunContext, CallerType, $"Making request {request} to lightspeed server" );
+			LightspeedLogger.Info( syncRunContext, CallerType, $"Making request {request} to lightspeed server" );
 			var webRequestAction = new Func< Task< WebResponse > >(
 				async () =>
 				{
@@ -150,20 +149,20 @@ namespace SkuVault.Lightspeed.Access.Services
 
 				var stream = response.GetResponseStream();
 
-				LightspeedLogger.Debug( syncRunContext, CallerType,
+				LightspeedLogger.Info( syncRunContext, CallerType,
 					$"Got response from server for request {request}, starting deserialization" );
 				var deserializer =
 					new XmlSerializer( typeof( T ) );
 
 				var result = ( T ) deserializer.Deserialize( stream );
 
-				LightspeedLogger.Debug( syncRunContext, CallerType,
+				LightspeedLogger.Info( syncRunContext, CallerType,
 					$"Successfully deserialized response for request {request}. Response: {result.ToJson()}" );
 				var possibleAdditionalResponses = await this.IterateThroughPaginationAsync( request, result, syncRunContext, ctx );
 
 				if ( result is IPaginatedResponse aggregatedResult )
 				{
-					LightspeedLogger.Debug( syncRunContext, CallerType,
+					LightspeedLogger.Info( syncRunContext, CallerType,
 						$"Aggregating paginated results for request {request}" );
 					possibleAdditionalResponses.ForEach( resp => aggregatedResult.Aggregate( ( IPaginatedResponse ) resp ) );
 				}
@@ -226,16 +225,16 @@ namespace SkuVault.Lightspeed.Access.Services
 			if( paginatedRequest.GetOffset() != 0 )
 				return additionalResponses;
 
-			LightspeedLogger.Debug( syncRunContext, CallerType,
+			LightspeedLogger.Info( syncRunContext, CallerType,
 				$"Response for request {r} was paginated, started iterating the remaining pages..." );
 
 			var numPages = paginatedResponse.GetCount() / paginatedRequest.GetLimit() + 1;
 
-			LightspeedLogger.Debug( syncRunContext, CallerType,
+			LightspeedLogger.Info( syncRunContext, CallerType,
 				$"Expected number of pages for request {r} : {numPages}" );
 			for( var pageNum = 1; pageNum < numPages; pageNum++ )
 			{
-				LightspeedLogger.Debug( syncRunContext, CallerType,
+				LightspeedLogger.Info( syncRunContext, CallerType,
 					$"Processing page {numPages} for request {r}..." );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
 				additionalResponses.Add( this.GetResponse< T >( r, syncRunContext ) );
@@ -259,11 +258,11 @@ namespace SkuVault.Lightspeed.Access.Services
 
 			var numPages = paginatedResponse.GetCount() / paginatedRequest.GetLimit() + 1;
 
-			LightspeedLogger.Debug( syncRunContext, CallerType,
+			LightspeedLogger.Info( syncRunContext, CallerType,
 				$"Expected number of pages for request {r} : {numPages}" );
 			for( var pageNum = 1; pageNum < numPages; pageNum++ )
 			{
-				LightspeedLogger.Debug( syncRunContext, CallerType,
+				LightspeedLogger.Info( syncRunContext, CallerType,
 					$"Processing page {pageNum} / {numPages} for request {r}..." );
 				paginatedRequest.SetOffset( pageNum * paginatedRequest.GetLimit() );
 				additionalResponses.Add( await this.GetResponseAsync< T >( r, syncRunContext, ctx ) );
@@ -274,7 +273,7 @@ namespace SkuVault.Lightspeed.Access.Services
 
 		private HttpWebRequest CreateHttpWebRequest( string url, SyncRunContext syncRunContext )
 		{
-			LightspeedLogger.Debug( syncRunContext, CallerType, $"Composed lightspeed request URL: {url}" );
+			LightspeedLogger.Info( syncRunContext, CallerType, $"Composed lightspeed request URL: {url}" );
 			var uri = new Uri( url );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
@@ -292,7 +291,7 @@ namespace SkuVault.Lightspeed.Access.Services
 				return string.Concat( "Bearer ", this._config.LightspeedAccessToken );
 			}
 			
-			LightspeedLogger.Debug( syncRunContext, CallerType,
+			LightspeedLogger.Info( syncRunContext, CallerType,
 				$"Using basic header authorization method for {this._config.Username}" );
 			var authInfo = string.Concat( this._config.Username, ":", this._config.Password );
 			authInfo = Convert.ToBase64String( Encoding.Default.GetBytes( authInfo ) );
