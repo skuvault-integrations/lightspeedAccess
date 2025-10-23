@@ -6,6 +6,8 @@ using System.Runtime.ExceptionServices;
 using SkuVault.Integrations.Core.Common;
 using Polly;
 using Polly.Retry;
+using SkuVault.Integrations.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace SkuVault.Lightspeed.Access.Misc
 {
@@ -17,8 +19,9 @@ namespace SkuVault.Lightspeed.Access.Misc
 		private readonly int _requestCost;
 		private readonly AsyncRetryPolicy _throttlerActionPolicy;
 		private const string CallerType = nameof(ThrottlerAsync);
+		private readonly IIntegrationLogger _logger;
 
-		public ThrottlerAsync( ThrottlerConfig config, SyncRunContext syncRunContext )
+		public ThrottlerAsync( ThrottlerConfig config, SyncRunContext syncRunContext, IIntegrationLogger logger )
 		{
 			this._maxQuota = config._maxQuota;
 			var maxRetryCount = config._maxRetryCount;
@@ -26,20 +29,40 @@ namespace SkuVault.Lightspeed.Access.Misc
 			this._syncRunContext = syncRunContext;
 			this._requestCost = config._requestCost;
 			var delayOnThrottlingException = config._delayOnThrottlingException;
+			this._logger = logger;
 
-			this._throttlerActionPolicy = Policy.Handle< Exception >().RetryAsync( maxRetryCount, async ( ex, i ) =>
+			this._throttlerActionPolicy = Policy.Handle< Exception >().RetryAsync( maxRetryCount, async ( ex, _ ) =>
 			{
 				if ( this.IsExceptionFromThrottling( ex ) )
 				{
-					LightspeedLogger.Info( _syncRunContext, CallerType, "Throttler: got throttling exception. Retrying..." );
+					_logger.Logger.LogInformation(
+						Constants.LoggingCommonPrefix + "Throttler: got throttling exception. Retrying...",
+						Constants.ChannelName,
+						Constants.VersionInfo,
+						_syncRunContext.TenantId,
+						_syncRunContext.ChannelAccountId,
+						_syncRunContext.CorrelationId,
+						CallerType,
+						nameof(ThrottlerAsync) );
+
 					await delayOnThrottlingException();
 				}
 				else
 				{
 					var errMessage = $"Throttler: faced non-throttling exception: {ex.Message}";
-					LightspeedLogger.Info( _syncRunContext, CallerType, errMessage );
 
-					if( !( ex is WebException webException ) ) throw new LightspeedException( errMessage, ex );
+					_logger.Logger.LogInformation(
+						Constants.LoggingCommonPrefix + "Throttler: faced non-throttling exception: {ErrorMessage}",
+						Constants.ChannelName,
+						Constants.VersionInfo,
+						_syncRunContext.TenantId,
+						_syncRunContext.ChannelAccountId,
+						_syncRunContext.CorrelationId,
+						CallerType,
+						nameof(ThrottlerAsync),
+						ex.Message);
+
+					if ( !( ex is WebException webException ) ) throw new LightspeedException( errMessage, ex );
 					if( !( webException.Response is HttpWebResponse response ) ) throw new LightspeedException( errMessage, ex );
 					if (response.StatusCode == HttpStatusCode.Unauthorized)
 					{
@@ -59,11 +82,17 @@ namespace SkuVault.Lightspeed.Access.Misc
 			});
 		}
 
-		// default throttler that implements Lightspeed leaky bucket
-		public ThrottlerAsync( long accountId, SyncRunContext syncRunContext ): this( ThrottlerConfig.CreateDefault( accountId ), syncRunContext )
+		/// <summary>
+		/// Default throttler that implements Lightspeed leaky bucket
+		/// </summary>
+		/// <param name="accountId"></param>
+		/// <param name="syncRunContext"></param>
+		/// <param name="logger"></param>
+		public ThrottlerAsync( long accountId, SyncRunContext syncRunContext, IIntegrationLogger logger ) :
+			this( ThrottlerConfig.CreateDefault( accountId ), syncRunContext, logger )
 		{
 		}
- 
+
 		public async Task< TResult > ExecuteAsync< TResult >( Func< Task< TResult > > funcToThrottle )
 		{
 			try
@@ -83,19 +112,21 @@ namespace SkuVault.Lightspeed.Access.Misc
 			await semaphore.WaitAsync();
 
 			await this.WaitIfNeededAsync();
-			
+
 			TResult result;
 			try
 			{
 				result = await funcToThrottle();
-				LightspeedLogger.Info( _syncRunContext, CallerType, "Throttler: request executed successfully" );
+
+				_logger.LogOperationEnd( _syncRunContext, CallerType );
+
 				this.SubtractQuota( result );
 			}
 			finally
 			{
 				semaphore.Release();
 			}
-			
+
 			return result;
 		}
 
@@ -105,26 +136,26 @@ namespace SkuVault.Lightspeed.Access.Misc
 			var response = webException?.Response as HttpWebResponse;
 
 			return response != null
-                   && webException.Status == WebExceptionStatus.ProtocolError
-                   && response.StatusCode == (HttpStatusCode)429;
-        }
+				   && webException.Status == WebExceptionStatus.ProtocolError
+				   && response.StatusCode == (HttpStatusCode)429;
+		}
 
-        private string SetResponseText(HttpWebResponse response, string errMessage)
-        {
-            string responseText;
+		private string SetResponseText(HttpWebResponse response, string errMessage)
+		{
+			string responseText;
 
-            using (var reader = new StreamReader(response.GetResponseStream()))
-            {
-                responseText = reader.ReadToEnd();
-            }
+			using (var reader = new StreamReader(response.GetResponseStream()))
+			{
+				responseText = reader.ReadToEnd();
+			}
 
-            if (string.IsNullOrWhiteSpace(responseText))
-            {
-                responseText = errMessage;
-            }
+			if (string.IsNullOrWhiteSpace(responseText))
+			{
+				responseText = errMessage;
+			}
 
-            return responseText;
-        }
+			return responseText;
+		}
 
 		private ThrottlingInfoItem GetRemainingQuota()
 		{
@@ -141,8 +172,18 @@ namespace SkuVault.Lightspeed.Access.Misc
 		private async Task WaitIfNeededAsync()
 		{
 			var remainingQuota = this.GetRemainingQuota();
-			LightspeedLogger.Info( _syncRunContext, CallerType,
-				$"Current quota remaining for account {this._accountId} is: {remainingQuota.RemainingQuantity}" );
+
+			_logger.Logger.LogInformation(
+						Constants.LoggingCommonPrefix + "Throttler: Current quota remaining for account '{AccountId}' is '{RemainingQuantity}'",
+						Constants.ChannelName,
+						Constants.VersionInfo,
+						_syncRunContext.TenantId,
+						_syncRunContext.ChannelAccountId,
+						_syncRunContext.CorrelationId,
+						CallerType,
+						nameof(WaitIfNeededAsync),
+						this._accountId,
+						remainingQuota.RemainingQuantity );
 
 			if( remainingQuota.RemainingQuantity > this._requestCost )
 			{
@@ -153,30 +194,61 @@ namespace SkuVault.Lightspeed.Access.Misc
 			}
 
 			var secondsForDelay = Convert.ToInt32( Math.Ceiling( ( this._requestCost - remainingQuota.RemainingQuantity ) / remainingQuota.DripRate ) );
-            var millisecondsForDelay = secondsForDelay * 1000;
+			var millisecondsForDelay = secondsForDelay * 1000;
 
-			LightspeedLogger.Info( _syncRunContext, CallerType,
-				$"Throttler: quota exceeded. Waiting {secondsForDelay} seconds..." );
+			_logger.Logger.LogInformation(
+						Constants.LoggingCommonPrefix + "Throttler: quota exceeded. Waiting '{SecondsForDelay}' seconds...",
+						Constants.ChannelName,
+						Constants.VersionInfo,
+						_syncRunContext.TenantId,
+						_syncRunContext.ChannelAccountId,
+						_syncRunContext.CorrelationId,
+						CallerType,
+						nameof(WaitIfNeededAsync),
+						secondsForDelay );
+
 			await Task.Delay( millisecondsForDelay );
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Throttler: Resuming..." );
+
+			_logger.LogOperationEnd( _syncRunContext, CallerType );
 		}
 
 		private void SubtractQuota< TResult >( TResult result )
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, 
-				"Throttler: trying to get leaky bucket metadata from response" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			if( QuotaParser.TryParseQuota( result, out var bucketMetadata ) )
 			{
-				LightspeedLogger.Info( _syncRunContext, CallerType,
-					$"Throttler: parsed leaky bucket metadata from response. Bucket size: {bucketMetadata.quotaSize}. Used: {bucketMetadata.quotaUsed}. Drip rate: {bucketMetadata.dripRate}" );
+				_logger.Logger.LogInformation(
+						Constants.LoggingCommonPrefix +
+							"Throttler: parsed leaky bucket metadata from response. Bucket size: {QuotaSize}. Used: {QuotaUsed}. Drip rate: {DripRate}",
+						Constants.ChannelName,
+						Constants.VersionInfo,
+						_syncRunContext.TenantId,
+						_syncRunContext.ChannelAccountId,
+						_syncRunContext.CorrelationId,
+						CallerType,
+						nameof(SubtractQuota),
+						bucketMetadata.quotaSize,
+						bucketMetadata.quotaUsed,
+						bucketMetadata.dripRate );
+
 				var quotaDelta = bucketMetadata.quotaSize - bucketMetadata.quotaUsed;
 				this.SetRemainingQuota( quotaDelta > 0 ? quotaDelta : 0, bucketMetadata.dripRate );
 			}
 
 			var remainingQuota = this.GetRemainingQuota();
-			LightspeedLogger.Info( _syncRunContext, CallerType,
-				$"Throttler: subtracted quota, now available {remainingQuota.RemainingQuantity}, drip rate {remainingQuota.DripRate}" );
+
+			_logger.Logger.LogInformation(
+					Constants.LoggingCommonPrefix + "Throttler: subtracted quota, now available {RemainingQuantity}, drip rate {DripRate}",
+					Constants.ChannelName,
+					Constants.VersionInfo,
+					_syncRunContext.TenantId,
+					_syncRunContext.ChannelAccountId,
+					_syncRunContext.CorrelationId,
+					CallerType,
+					nameof(SubtractQuota),
+					remainingQuota.RemainingQuantity,
+					remainingQuota.DripRate );
 		}
 
 		public class ThrottlerException: Exception

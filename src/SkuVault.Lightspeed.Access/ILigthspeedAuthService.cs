@@ -1,11 +1,11 @@
-﻿using SkuVault.Integrations.Core.Common;
-using SkuVault.Lightspeed.Access.Models.Auth;
+﻿using SkuVault.Lightspeed.Access.Models.Auth;
 
 namespace SkuVault.Lightspeed.Access
 {
 	public interface ILigthspeedAuthService
 	{
-		AuthResult GetAuthByTemporyToken( string temporyToken, SyncRunContext syncRunContext );
+		AuthResult GetAuthByTemporyToken( string temporyToken );
 		string GetAuthUrl();
+		string GetNewAccessToken( string refreshToken );
 	}
 }

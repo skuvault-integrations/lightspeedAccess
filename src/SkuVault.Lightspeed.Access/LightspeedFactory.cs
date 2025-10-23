@@ -1,4 +1,5 @@
 ﻿using SkuVault.Integrations.Core.Common;
+using SkuVault.Integrations.Core.Logging;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 
 namespace SkuVault.Lightspeed.Access
@@ -8,46 +9,43 @@ namespace SkuVault.Lightspeed.Access
 		ILightspeedOrdersService CreateOrdersService( LightspeedConfig config, SyncRunContext syncRunContext );
 		ILightspeedShopService CreateShopsService( LightspeedConfig config, SyncRunContext syncRunContext );
 		ILightspeedProductsService CreateProductsService( LightspeedConfig config, SyncRunContext syncRunContext );
-		IAccountService CreateAccountsService( LightspeedConfig config );
-		ILigthspeedAuthService CreateLightspeedAuthService();
+		IAccountService CreateAccountsService( LightspeedConfig config, SyncRunContext syncRunContext );
+		ILigthspeedAuthService CreateLightspeedAuthService( LightspeedConfig config, SyncRunContext syncRunContext );
 	}
 
 	public sealed class LightspeedFactory: ILightspeedFactory
 	{
-		private string LightspeedClientId{ get; set; }
-		private string LightspeedClientSecret{ get; set; }
-		private string LightspeedRedirectUri{ get; set; }
 
-		public LightspeedFactory( string clientId, string clientSecret, string redirectUri )
+		private readonly IIntegrationLogger _logger;
+
+		public LightspeedFactory( IIntegrationLogger logger )
 		{
-			this.LightspeedClientId = clientId;
-			this.LightspeedClientSecret = clientSecret;
-			this.LightspeedRedirectUri = redirectUri;
+			_logger = logger;
 		}
 
 		public ILightspeedOrdersService CreateOrdersService( LightspeedConfig config, SyncRunContext syncRunContext )
 		{
-			return new LightspeedOrdersService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ), syncRunContext );
+			return new LightspeedOrdersService( config, syncRunContext, _logger );
 		}
 
 		public ILightspeedShopService CreateShopsService( LightspeedConfig config, SyncRunContext syncRunContext )
 		{
-			return new LightspeedShopService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ), syncRunContext );
+			return new LightspeedShopService( config, syncRunContext, _logger );
 		}
 
 		public ILightspeedProductsService CreateProductsService( LightspeedConfig config, SyncRunContext syncRunContext )
 		{
-			return new LightspeedProductsService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ), syncRunContext );
-		}
-		
-		public IAccountService CreateAccountsService( LightspeedConfig config )
-		{
-			return new AccountService( config, new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret ) );
+			return new LightspeedProductsService( config, syncRunContext, _logger );
 		}
 
-		public ILigthspeedAuthService CreateLightspeedAuthService()
+		public IAccountService CreateAccountsService( LightspeedConfig config, SyncRunContext syncRunContext )
 		{
-			return new LightspeedAuthService( this.LightspeedClientId, this.LightspeedClientSecret );
+			return new AccountService( config, syncRunContext, _logger );
+		}
+
+		public ILigthspeedAuthService CreateLightspeedAuthService( LightspeedConfig config, SyncRunContext syncRunContext )
+		{
+			return new LightspeedAuthService( config.ClientId, config.ClientSecret, syncRunContext, _logger );
 		}
 	}
 }

@@ -1,27 +1,31 @@
 ﻿using System.Linq;
-using SkuVault.Lightspeed.Access.Misc;
 using SkuVault.Lightspeed.Access.Models.Account;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 using SkuVault.Lightspeed.Access.Models.Request;
-using SkuVault.Lightspeed.Access.Services;
 using SkuVault.Integrations.Core.Common;
+using SkuVault.Integrations.Core.Logging;
 
 namespace SkuVault.Lightspeed.Access
 {
-	internal class AccountService: IAccountService
+	internal class AccountService: LightspeedBaseService, IAccountService
 	{
-		private readonly WebRequestService _webRequestServices;
+		private const string CallerType = nameof(AccountService);
 
-		public AccountService( LightspeedConfig config, LightspeedAuthService authService )
+		public AccountService( LightspeedConfig config, SyncRunContext syncRunContext, IIntegrationLogger logger ) :
+			base( config, syncRunContext, logger )
 		{
-			this._webRequestServices = new WebRequestService( config, null, authService );
 		}
 
-		public int GetAccountId( SyncRunContext syncRunContext )
+		public int GetAccountId()
 		{
-			LightspeedLogger.Info( syncRunContext, nameof(AccountService), "Started getting account Id for current session" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
+
 			var request = new GetAccountRequest();
-			return this._webRequestServices.GetResponse< LightspeedAccountList >( request, syncRunContext ).Account.First().AccountId;
+			var result = this._webRequestServices.GetResponse< LightspeedAccountList >( request, _syncRunContext ).Account[ 0 ].AccountId;
+
+			_logger.LogOperationEnd( _syncRunContext, CallerType );
+
+			return result;
 		}
 	}
 }

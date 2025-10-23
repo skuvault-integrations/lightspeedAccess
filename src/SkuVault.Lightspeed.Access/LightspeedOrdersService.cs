@@ -3,37 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using SkuVault.Integrations.Core.Common;
+using SkuVault.Integrations.Core.Logging;
 using SkuVault.Lightspeed.Access.Extensions;
-using SkuVault.Lightspeed.Access.Misc;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 using SkuVault.Lightspeed.Access.Models.Order;
 using SkuVault.Lightspeed.Access.Models.Product;
 using SkuVault.Lightspeed.Access.Models.Request;
 using SkuVault.Lightspeed.Access.Models.ShippingInfo;
 using SkuVault.Lightspeed.Access.Models.Shop;
-using SkuVault.Lightspeed.Access.Services;
 
 namespace SkuVault.Lightspeed.Access
 {
-	public class LightspeedOrdersService: ILightspeedOrdersService
+	public class LightspeedOrdersService: LightspeedBaseService, ILightspeedOrdersService
 	{
-		private readonly WebRequestService _webRequestServices;
-		private readonly SyncRunContext _syncRunContext;
 		private const string CallerType = nameof(LightspeedOrdersService);
 
-		public LightspeedOrdersService( LightspeedConfig config, LightspeedAuthService authService, SyncRunContext syncRunContext )
+		public LightspeedOrdersService( LightspeedConfig config, SyncRunContext syncRunContext, IIntegrationLogger logger ) :
+			base(config, syncRunContext, logger)
 		{
-			this._syncRunContext = syncRunContext;
-			var throttler = new ThrottlerAsync( config.AccountId, syncRunContext );
-			this._webRequestServices = new WebRequestService( config, throttler, authService );
-			
 		}
 
 		public IEnumerable< LightspeedOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
 		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType,
-				$"Started getting orders from lightspeed from {dateFrom} to {dateTo}" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[Start]: Started getting orders from lightspeed from '{DateFrom} to {DateTo}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetOrders),
+				dateFrom,
+				dateTo );
 
 			var getSalesRequest = new GetSalesRequest( dateFrom, dateTo );
 
@@ -46,12 +50,9 @@ namespace SkuVault.Lightspeed.Access
 			if( rawOrders.Count == 0 )
 				return rawOrders;
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {rawOrders.Count} raw orders" );
-
 			var shopsNames = this.GetShopNames();
 			var items = this.GetItems( rawOrders );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Adding shop info, sale lines and ship info to raw orders..." );
 			rawOrders.ForEach( o =>
 			{
 				o.SaleLines.ForEach( s =>
@@ -62,7 +63,16 @@ namespace SkuVault.Lightspeed.Access
 					o.ShopName = shopsNames.GetValue( o.ShopId );
 			} );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Retrieving orders completed" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Retrieving orders completed. Got {RawOrdersCount} raw orders",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetOrders),
+				rawOrders.Count );
 
 			return rawOrders;
 		}
@@ -75,7 +85,7 @@ namespace SkuVault.Lightspeed.Access
 
 		private IEnumerable< LightspeedProduct > GetItems( HashSet< int > itemIdsFull )
 		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Started getting products for orders" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			var itemIdsPartitioned = itemIdsFull.ToList().Partition( 100 );
 
@@ -90,50 +100,63 @@ namespace SkuVault.Lightspeed.Access
 					result.AddRange( this._webRequestServices.GetResponse< LightspeedProductList >( getItemsRequest, this._syncRunContext ).Item.ToList() );
 			} );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {result.Count} products for orders" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Got {ProductsCount} products for orders",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetItems),
+				result.Count );
 
-			return result;
-		}
-
-		private Dictionary< int, ShipTo > GetShipInfo( IEnumerable< LightspeedOrder > orders )
-		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Started getting shipping info for orders" );
-
-			var shipIds = orders.Select( o => o.ShipToId ).ToHashSet();
-			var getShipInfoRequest = new GetShipInfoRequest( shipIds );
-
-			var result = new Dictionary< int, ShipTo >();
-			var response = this._webRequestServices.GetResponse< ShipInfoList >( getShipInfoRequest, this._syncRunContext ).ShipTo;
-			if( response != null )
-				result = response.Where( st => st.SaleId != 0 ).Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).ToDictionary( x => x.Item1, x => x.Item2 );
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {result.Count} shipping info entries" );
 			return result;
 		}
 
 		private Dictionary< int, string > GetShopNames()
 		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Started getting shop names..." );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			var result = new Dictionary< int, string >();
 			var response = this._webRequestServices.GetResponse< ShopsList >( new GetShopRequest(), this._syncRunContext ).Shop;
 			if( response != null )
 				result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {result.Count} shop entries" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Got {ShopCount} shop entries",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetShopNames),
+				result.Count );
 
 			return result;
 		}
 
 		private async Task< Dictionary< int, string > > GetShopNamesAsync( CancellationToken ctx )
 		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Started getting shop names..." );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
+
 			var result = new Dictionary< int, string >();
 
 			var response = ( await this._webRequestServices.GetResponseAsync< ShopsList >( new GetShopRequest(), this._syncRunContext, ctx ) ).Shop;
 			if( response != null )
 				result = response.Select( st => new Tuple< int, string >( st.ShopId, st.ShopName ) ).ToDictionary( x => x.Item1, x => x.Item2 );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {result.Count} shop entries" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Got {ShopCount} shop entries",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetShopNamesAsync),
+				result.Count );
 
 			return result;
 		}
@@ -151,9 +174,9 @@ namespace SkuVault.Lightspeed.Access
 
 		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( HashSet< int > itemIdsFull, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Started getting products for orders" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
-			if( itemIdsFull.Count == 0 )
+			if ( itemIdsFull.Count == 0 )
 				return new List< LightspeedProduct >();
 
 			var itemIdsPartitioned = itemIdsFull.ToList().Partition( 100 );
@@ -167,13 +190,23 @@ namespace SkuVault.Lightspeed.Access
 			await Task.WhenAll( tasks );
 			var result = tasks.SelectMany( t => t.Result.Item ?? Array.Empty< LightspeedProduct >() ).ToList();
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {result.Count} products for orders" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Got {ProductsCount} products for orders",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetItemsAsync),
+				result.Count );
+
 			return result;
 		}
 
 		private async Task< Dictionary< int, ShipTo > > GetShipInfoAsync( IEnumerable< LightspeedOrder > orders, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Started getting shipping info for orders" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			var shipIds = orders.Select( o => o.ShipToId ).ToHashSet();
 			var getShipInfoRequest = new GetShipInfoRequest( shipIds );
@@ -183,13 +216,33 @@ namespace SkuVault.Lightspeed.Access
 			if( response != null )
 				result = response.Select( st => new Tuple< int, ShipTo >( st.SaleId, st ) ).Where( x => x.Item1 != 0 ).ToDictionary( x => x.Item1, x => x.Item2 );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {result.Count} shipping info entries" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Got {ShippingInfoCount} shipping info entries",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetShipInfoAsync),
+				result.Count );
+
 			return result;
 		}
 
 		public async Task< IEnumerable< LightspeedOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Started getting orders from lightspeed from {dateFrom} to {dateTo}" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[Start]: Started getting orders from lightspeed from '{DateFrom} to {DateTo}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetOrdersAsync),
+				dateFrom,
+				dateTo );
 
 			var getSalesRequest = new GetSalesRequest( dateFrom, dateTo );
 
@@ -202,12 +255,9 @@ namespace SkuVault.Lightspeed.Access
 			if( rawOrders.Count == 0 )
 				return rawOrders;
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, $"Got {rawOrders.Count} raw orders" );
-
 			var items = await this.GetItemsAsync( rawOrders, ctx );
 			var shopsNames = await this.GetShopNamesAsync( ctx );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Adding shop info, sale lines and ship info to raw orders..." );
 			rawOrders.ForEach( o =>
 			{
 				if( o.SaleLines != null && items.Count() != 0 )
@@ -224,7 +274,17 @@ namespace SkuVault.Lightspeed.Access
 					o.ShopName = shopsNames.GetValue( o.ShopId );
 			} );
 
-			LightspeedLogger.Info( this._syncRunContext, CallerType, "Retrieving orders completed" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Retrieving orders completed. Got {RawOrdersCount} raw orders",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetOrders),
+				rawOrders.Count );
+
 			return rawOrders;
 		}
 	}

@@ -2,34 +2,38 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using SkuVault.Lightspeed.Access.Misc;
 using Newtonsoft.Json;
 using SkuVault.Integrations.Core.Common;
 using SkuVault.Lightspeed.Access.Helpers;
 using SkuVault.Lightspeed.Access.Models.Auth;
+using SkuVault.Integrations.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace SkuVault.Lightspeed.Access
 {
 	public class LightspeedAuthService: ILigthspeedAuthService
 	{
-		private readonly string _ligthspeedClientId;
-		private readonly string _lightspeedClientSecret;
-
 		private const string AuthTokenEndpoint = "https://cloud.merchantos.com/oauth/access_token.php";
 		private const string TemporaryTokenEndpoint = "https://cloud.merchantos.com/oauth/authorize.php";
-		private const string CallerType = nameof(LightspeedAuthService);
+		private readonly IIntegrationLogger _logger;
+		private readonly string _ligthspeedClientId;
+		private readonly string _lightspeedClientSecret;
+		private readonly SyncRunContext _syncRunContext;
+		private const string CallerType = nameof(LightspeedOrdersService);
 
 		private enum RequestType { GetAuthorizationCode, RefreshToken }
 
-		public LightspeedAuthService( string lightspeedClientId, string lightspeedClientSecret )
+		public LightspeedAuthService( string lightspeedClientId, string lightspeedClientSecret, SyncRunContext syncRunContext, IIntegrationLogger logger )
 		{
-			this._lightspeedClientSecret = lightspeedClientSecret;
-			this._ligthspeedClientId = lightspeedClientId;
+			_lightspeedClientSecret = lightspeedClientSecret;
+			_ligthspeedClientId = lightspeedClientId;
+			_logger = logger;
+			_syncRunContext = syncRunContext;
 		}
 
-		public AuthResult GetAuthByTemporyToken( string temporyToken, SyncRunContext syncRunContext )
+		public AuthResult GetAuthByTemporyToken( string temporyToken )
 		{
-			return this.GetAuthInfo( temporyToken, RequestType.GetAuthorizationCode, syncRunContext );
+			return this.GetAuthInfo( temporyToken, RequestType.GetAuthorizationCode );
 		}
 
 		public string GetAuthUrl()
@@ -37,16 +41,15 @@ namespace SkuVault.Lightspeed.Access
 			return $"{TemporaryTokenEndpoint}/?response_type=code&client_id={_ligthspeedClientId}&scope=employee:register%20employee:inventory%20employee:admin_shops%20employee:customers";
 		}
 
-		internal string GetNewAccessToken( string refreshToken, SyncRunContext syncRunContext )
+		public string GetNewAccessToken( string refreshToken )
 		{
-			var authResult = this.GetAuthInfo( refreshToken, RequestType.RefreshToken, syncRunContext );
+			var authResult = this.GetAuthInfo( refreshToken, RequestType.RefreshToken );
 			return authResult.AccessToken;
 		}
 
 		internal static bool IsUnauthorizedException( Exception ex )
 		{
-			var webException = ex as WebException;
-			if( webException == null )
+			if ( ex is not WebException webException )
 				return false;
 
 			return IsUnauthorizedException( webException );
@@ -54,17 +57,26 @@ namespace SkuVault.Lightspeed.Access
 
 		internal static bool IsUnauthorizedException( WebException ex )
 		{
-			var response = ex.Response as HttpWebResponse;
-			if( response == null )
+			if ( ex.Response is not HttpWebResponse response )
 				return false;
 
 			return response.StatusCode == HttpStatusCode.Unauthorized;
 		}
 
-		private AuthResult GetAuthInfo( string token, RequestType requestType, SyncRunContext syncRunContext )
+		private AuthResult GetAuthInfo( string token, RequestType requestType )
 		{
 			var sanitizedToken = TokenSanitizer.SanitizeToken( token );
-			LightspeedLogger.Info( syncRunContext, CallerType, $"Creating get auth token request with a token {sanitizedToken}" );
+
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[Start]: Creating get auth token request with a token '{Token}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetAuthInfo),
+				sanitizedToken );
 
 			var uri = new Uri( AuthTokenEndpoint );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
@@ -89,25 +101,41 @@ namespace SkuVault.Lightspeed.Access
 			using( StreamWriter stOut = new StreamWriter( request.GetRequestStream(), System.Text.Encoding.ASCII ) )
 			{
 				stOut.Write( data );
-				stOut.Close();
 			}
 
-			LightspeedLogger.Info( syncRunContext, CallerType, $"Request body created successfully, sending it to server: {data}, Token:{sanitizedToken}" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "Request body created successfully, sending it to server: '{Data}', Token: '{SanitizedToken}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetAuthInfo),
+				data,
+				sanitizedToken );
 
 			var response = request.GetResponse();
-			LightspeedLogger.Info( syncRunContext, CallerType, "Successfully got response from server, reading response stream" );
-
 			var reader = new StreamReader( response.GetResponseStream() );
-
 			var responseJson = reader.ReadToEnd();
 
-			LightspeedLogger.Info( syncRunContext, CallerType, "Response stream reading complete. Starting deserialization" );
 			var jsonDictionary = JsonConvert.DeserializeObject< Dictionary< string, object > >( responseJson );
 			var accessToken = ( string )jsonDictionary[ "access_token" ];
 			var refreshToken = requestType == RequestType.GetAuthorizationCode ? ( string )jsonDictionary[ "refresh_token" ] : string.Empty;
 
 			var sanitizedAccessToken = TokenSanitizer.SanitizeToken( accessToken );
-			LightspeedLogger.Info( syncRunContext, CallerType, $"Deserialization completed successfully, your token is {sanitizedAccessToken}" );
+
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Deserialization completed successfully, your token is '{SanitizedAccessToken}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetAuthInfo),
+				sanitizedAccessToken );
+
 			return new AuthResult( accessToken, refreshToken );
 		}
 	}

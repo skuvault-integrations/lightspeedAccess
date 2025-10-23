@@ -16,4 +16,53 @@
 		<Copyright>Copyright © 2025 Linnworks, Inc.</Copyright>
 		<RepositoryUrl>https://github.com/skuvault-integrations/lightspeedAccess</RepositoryUrl>
 	</PropertyGroup>
+
+	<PropertyGroup>
+		<!--Temporarily disabled TreatWarningsAsErrors -->
+		<CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<WarningsAsErrors/>
+		<RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
+		<RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<NoWarn>NU1803,NU1903,CA1848</NoWarn>
+		<!--Temporarily allow calls to obsolete methods -->
+		<!--TODO TD-385 Remove -->
+		<WarningsNotAsErrors>CS0618</WarningsNotAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AsyncFixer" Version="1.5.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.4.0-beta.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Lindhart.Analyser.MissingAwaitWarning" Version="2.1.0-beta">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ReflectionAnalyzers" Version="0.3.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="SerilogAnalyzer" Version="0.15.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Roslynator.Analyzers" Version="4.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="SecurityCodeScan.VS2019" Version="5.6.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
 </Project>
