@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using SkuVault.Lightspeed.Access.Models.Account;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 using SkuVault.Lightspeed.Access.Models.Request;
