@@ -1,41 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SkuVault.Lightspeed.Access.Models.Configuration;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using SkuVault.Integrations.Core.Common;
-using NSubstitute;
-using SkuVault.Lightspeed.Access.Misc;
-using SkuVault.Integrations.Core.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SkuVault.Lightspeed.Access.Tests.Shops
 {
-	internal class ShopTests
+	internal class ShopTests : BaseTests
 	{
-		private LightspeedFactory _factory;
-		private LightspeedConfig _config;
-		private ILightspeedShopService _service;
 		private readonly Randomizer _randomizer = new Randomizer();
-		private static SyncRunContext SyncRunContext => new SyncRunContext( 1, 2, Guid.NewGuid().ToString() );
-
-		[ SetUp ]
-		public void Init()
-		{
-			var credentials = new Credentials.TestsCredentials(@"..\..\Files\lightspeedCredentials.csv");
-			IIntegrationLogger logger = Substitute.For<IIntegrationLogger>();
-			this._factory = new LightspeedFactory( logger );
-			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken, credentials.ClientId, credentials.ClientSecret );
-			this._service = this._factory.CreateShopsService( _config, SyncRunContext );
-		}
 
 		[ Explicit ]
 		[ Test ]
 		public async Task GetShopsAsync()
 		{
-			var shops = await this._service.GetShopsAsync( new CancellationToken() );
+			var service = GetShopsService();
+
+			var shops = await service.GetShopsAsync( new CancellationToken() );
 
 			Assert.Greater( shops.Count(), 0 );
 		}
@@ -44,14 +27,15 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 		[ Test ]
 		public async Task UpdateOnHandQuantityAsync()
 		{
+			var service = GetShopsService();
 			var itemId = 17;
 			var shopId = 1;
 			var itemShopRelationId = 37;
 			var quantity = _randomizer.Next( 1, 100 );
 
-			await this._service.UpdateOnHandQuantityAsync( itemId, shopId, itemShopRelationId, quantity, new CancellationToken() );
+			await service.UpdateOnHandQuantityAsync( itemId, shopId, itemShopRelationId, quantity, new CancellationToken() );
 
-			var items = await this._service.GetItems( shopId, new CancellationToken() );
+			var items = await service.GetItems( shopId, new CancellationToken() );
 			var item = items.FirstOrDefault( f => f.ItemId == itemId );
 			var itemQty = item.ItemShops.FirstOrDefault( f => f.ShopId == shopId && f.ItemShopId == itemShopRelationId )?.QuantityOnHand;
 			Assert.That( itemQty, Is.EqualTo( quantity ) );
@@ -61,10 +45,11 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 		[ Test ]
 		public async Task GetItemsAsync_ReturnsItems_WhenCorrectSkuIsProvided()
 		{
+			var service = GetShopsService();
 			var sku = "testsku1";
 
-			var items = await this._service.GetItems( new List< string > { sku }, new CancellationToken() );
-			
+			var items = await service.GetItems( new List< string > { sku }, new CancellationToken() );
+
 			Assert.Greater( items.Count, 0 );
 		}
 
@@ -72,10 +57,11 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 		[ Test ]
 		public async Task GetItems_ReturnsItems_WhenCorrectShopIdIsProvided()
 		{
+			var service = GetShopsService();
 			var shopId = 1;
 
-			var items = await this._service.GetItems( shopId, new CancellationToken() );
-			
+			var items = await service.GetItems( shopId, new CancellationToken() );
+
 			Assert.Greater( items.Count(), 0 );
 		}
 
@@ -83,12 +69,13 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 		[ Test ]
 		public async Task GetExistingItemsIdsAsync_ReturnsSortedExistingItemsOnly_WhenCorrectAndFakeIdsProvided()
 		{
-			var items = await this._service.GetItems( 1, new CancellationToken() );
+			var service = GetShopsService();
+
+			var items = await service.GetItems( 1, new CancellationToken() );
 			var correctIds = items.Select( p => p.ItemId ).ToList();
 			var fakeIds = new List< int > { -1, 99999990, 99999991, 99999992, 99999993, 99999994, 99999995 };
 			var allIds = correctIds.Union( fakeIds ).ToList();
-
-			var existingItems = await this._service.GetExistingItemsIdsAsync( allIds, new CancellationToken() );
+			var existingItems = await service.GetExistingItemsIdsAsync( allIds, new CancellationToken() );
 			var resultIds = existingItems.ToList();
 
 			Assert.AreEqual( resultIds.Count, correctIds.Count );
@@ -98,6 +85,13 @@ namespace SkuVault.Lightspeed.Access.Tests.Shops
 			{
 				Assert.AreEqual( resultIds[ i ], correctIds[ i ] );
 			}
+		}
+
+		private ILightspeedShopService GetShopsService()
+		{
+			var provider = CreatePublicServiceProvider();
+			var factory = provider.GetRequiredService<ILightspeedFactory>();
+			return factory.CreateShopsService(_config, SyncRunContext);
 		}
 	}
 }
