@@ -4,6 +4,8 @@ using System.Threading;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 using NUnit.Framework;
 using SkuVault.Integrations.Core.Common;
+using NSubstitute;
+using SkuVault.Integrations.Core.Logging;
 
 namespace SkuVault.Lightspeed.Access.Tests.Products
 {
@@ -18,8 +20,9 @@ namespace SkuVault.Lightspeed.Access.Tests.Products
 		public void Init()
 		{
 			var credentials = new Credentials.TestsCredentials( @"..\..\Files\lightspeedCredentials.csv" );
-			this._factory = new LightspeedFactory( credentials.ClientId, credentials.ClientSecret, "" );
-			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken );
+			IIntegrationLogger logger = Substitute.For<IIntegrationLogger>();
+			this._factory = new LightspeedFactory( logger );
+			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken, credentials.ClientId, credentials.ClientSecret );
 		}
 
 		[ Explicit ]
