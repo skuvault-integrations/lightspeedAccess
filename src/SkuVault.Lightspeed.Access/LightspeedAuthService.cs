@@ -19,7 +19,7 @@ namespace SkuVault.Lightspeed.Access
 		private readonly string _ligthspeedClientId;
 		private readonly string _lightspeedClientSecret;
 		private readonly SyncRunContext _syncRunContext;
-		private const string CallerType = nameof(LightspeedOrdersService);
+		private const string CallerType = nameof(LightspeedAuthService);
 
 		private enum RequestType { GetAuthorizationCode, RefreshToken }
 

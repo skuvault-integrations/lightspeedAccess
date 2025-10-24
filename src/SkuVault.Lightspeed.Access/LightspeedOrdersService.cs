@@ -282,7 +282,7 @@ namespace SkuVault.Lightspeed.Access
 				_syncRunContext.ChannelAccountId,
 				_syncRunContext.CorrelationId,
 				CallerType,
-				nameof(GetOrders),
+				nameof(GetOrdersAsync),
 				rawOrders.Count );
 
 			return rawOrders;
