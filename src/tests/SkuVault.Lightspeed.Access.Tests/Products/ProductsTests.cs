@@ -1,33 +1,17 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
-using SkuVault.Lightspeed.Access.Models.Configuration;
 using NUnit.Framework;
-using SkuVault.Integrations.Core.Common;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SkuVault.Lightspeed.Access.Tests.Products
 {
-	internal class ProductsTests
+	internal class ProductsTests : BaseTests
 	{
-		private LightspeedFactory _factory;
-		private LightspeedConfig _config;
-
-		private static SyncRunContext SyncRunContext => new SyncRunContext( 1, 2, Guid.NewGuid().ToString() );
-
-		[ SetUp ]
-		public void Init()
-		{
-			var credentials = new Credentials.TestsCredentials( @"..\..\Files\lightspeedCredentials.csv" );
-			this._factory = new LightspeedFactory( credentials.ClientId, credentials.ClientSecret, "" );
-			this._config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken );
-		}
-
 		[ Explicit ]
 		[ Test ]
 		public void GetProductsAsync()
 		{
-			var service = _factory.CreateProductsService( _config, SyncRunContext );
-
+			var service = GetProductsService();
 			var cSource = new CancellationTokenSource();
 
 			var products = service.GetProductsAsync( 1, cSource.Token ).GetAwaiter().GetResult();
@@ -38,6 +22,13 @@ namespace SkuVault.Lightspeed.Access.Tests.Products
 				Is.EqualTo( products.Count( x => !string.IsNullOrEmpty( x.DefaultVendorName ) ) ) );
 			Assert.Greater( products.Count( x => x.Manufacturer != null ), 0 );
 			Assert.Greater( products.Count( x => x.Description != null ), 0 );
+		}
+
+		private ILightspeedProductsService GetProductsService()
+		{
+			var provider = CreatePublicServiceProvider();
+			var factory = provider.GetRequiredService<ILightspeedFactory>();
+			return factory.CreateProductsService(_config, SyncRunContext);
 		}
 	}
 }

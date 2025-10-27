@@ -3,23 +3,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SkuVault.Integrations.Core.Common;
-using SkuVault.Lightspeed.Access.Misc;
+using SkuVault.Integrations.Core.Logging;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 using SkuVault.Lightspeed.Access.Models.Product;
 using SkuVault.Lightspeed.Access.Models.Request;
-using SkuVault.Lightspeed.Access.Services;
 
 namespace SkuVault.Lightspeed.Access
 {
-	public class LightspeedProductsService: ILightspeedProductsService
+	public class LightspeedProductsService: LightspeedBaseService, ILightspeedProductsService
 	{
-		private readonly WebRequestService _webRequestServices;
-		private readonly SyncRunContext _syncRunContext;
-
-		public LightspeedProductsService( LightspeedConfig config, LightspeedAuthService authService, SyncRunContext syncRunContext )
+		public LightspeedProductsService(LightspeedConfig config, SyncRunContext syncRunContext, IIntegrationLogger logger) :
+			base(config, syncRunContext, logger)
 		{
-			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync( config.AccountId, syncRunContext ), authService );
-			this._syncRunContext = syncRunContext;
 		}
 
 		public async Task< IEnumerable< LightspeedFullProduct > > GetProductsAsync( int shopId, CancellationToken ctx )

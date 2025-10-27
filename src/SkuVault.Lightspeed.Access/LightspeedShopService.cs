@@ -14,61 +14,89 @@ using SkuVault.Lightspeed.Access.Extensions;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 using SkuVault.Lightspeed.Access.Models.Product;
 using SkuVault.Lightspeed.Access.Services;
+using SkuVault.Integrations.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace SkuVault.Lightspeed.Access
 {
-	public class LightspeedShopService: ILightspeedShopService
+	public class LightspeedShopService: LightspeedBaseService, ILightspeedShopService
 	{
-		private readonly WebRequestService _webRequestServices;
 		private readonly WebRequestService _webRequestServicesForUpdating;
-		private readonly LightspeedConfig _config;
-		private readonly SyncRunContext _syncRunContext;
 		private const string CallerType = nameof(LightspeedShopService);
 
-		public LightspeedShopService( LightspeedConfig config, LightspeedAuthService authService, SyncRunContext syncRunContext )
+		public LightspeedShopService(LightspeedConfig config, SyncRunContext syncRunContext, IIntegrationLogger logger) :
+			base(config, syncRunContext, logger)
 		{
-			this._webRequestServices = new WebRequestService( config, new ThrottlerAsync( config.AccountId, syncRunContext ), authService );
-			this._webRequestServicesForUpdating = new WebRequestService( config, new ThrottlerAsync( ThrottlerConfig.CreateDefaultForWriteRequests( config.AccountId ), syncRunContext ), authService );
-			this._config = config;
-			this._syncRunContext = syncRunContext;
+			_webRequestServicesForUpdating = new WebRequestService(config,
+					new ThrottlerAsync(ThrottlerConfig.CreateDefaultForWriteRequests(config.AccountId), syncRunContext, logger), _authService, logger);
 		}
 
 		public IEnumerable< Shop > GetShops()
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Starting to get Shops" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			var getShopsRequest = new GetShopRequest();
 			var shops = this._webRequestServices.GetResponse< ShopsList >( getShopsRequest, _syncRunContext ).Shop;
 			if( shops == null )
 				return new List< Shop >();
 
-			LightspeedLogger.Info( _syncRunContext, CallerType, $"Retrieved {shops.Length} shops" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Retrieved '{ShopsCount}' shops",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetShops),
+				shops.Length );
+
 			return shops.ToList();
 		}
 
 		public async Task< IEnumerable< Shop > > GetShopsAsync( CancellationToken ctx )
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Starting to get Shops" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			var getShopsRequest = new GetShopRequest();
 			var shops = ( await this._webRequestServices.GetResponseAsync< ShopsList >( getShopsRequest, _syncRunContext, ctx ) ).Shop;
 			if( shops == null )
 				return new List< Shop >();
 
-			LightspeedLogger.Info( _syncRunContext, CallerType, $"Retrieved {shops.Length} shops" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Retrieved '{ShopsCount}' shops",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetShopsAsync),
+				shops.Length );
+
 			return shops.ToList();
 		}
 
 		public void UpdateOnHandQuantity( int itemId, int shopId, int itemShopRelationId, int quantity, string logComment = null )
 		{
-			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}", 
+			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}",
 				itemId, shopId, itemShopRelationId, quantity, ( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment );
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Starting update shop item quantity. " + paramInfo );
+
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[Start]: Starting update shop item quantity: '{ParamInfo}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(UpdateOnHandQuantity),
+				paramInfo );
 
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			this._webRequestServicesForUpdating.GetResponse< LightspeedProduct >( updateOnHandQuantityRequest, _syncRunContext );
 
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Quantity updated successfully. " + paramInfo );
+			_logger.LogOperationEnd( _syncRunContext, CallerType );
 		}
 
 		public async Task UpdateOnHandQuantityAsync( int itemId, int shopId, int itemShopRelationId, int quantity, 
@@ -76,17 +104,28 @@ namespace SkuVault.Lightspeed.Access
 		{
 			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}",
 				itemId, shopId, itemShopRelationId, quantity, ( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment );
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Starting update shop item quantity. " + paramInfo );
+			
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[Start]: Starting update shop item quantity: '{ParamInfo}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(UpdateOnHandQuantityAsync),
+				paramInfo );
 
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
 			await this._webRequestServicesForUpdating.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, _syncRunContext, ctx );
 
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Quantity updated successfully. " + paramInfo );
+			_logger.LogOperationEnd( _syncRunContext, CallerType );
 		}
 
 		public async Task< IDictionary< string, LightspeedProduct > > GetItems( IEnumerable< string > itemSkusFull, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Starting to get item sku index" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
+
 			var itemSkusPartitioned = itemSkusFull.ToList().Partition( 100 );
 
 			var dictionary = new Dictionary< string, LightspeedProduct >();
@@ -103,7 +142,17 @@ namespace SkuVault.Lightspeed.Access
 			{
 				if ( t.Result.Item != null )
 				{
-					LightspeedLogger.Info( _syncRunContext, CallerType, $"Got {t.Result.Item.Length} entries in item sku index" );
+					_logger.Logger.LogInformation(
+						Constants.LoggingCommonPrefix + "Got '{ItemLength}' entries in item sku index",
+						Constants.ChannelName,
+						Constants.VersionInfo,
+						_syncRunContext.TenantId,
+						_syncRunContext.ChannelAccountId,
+						_syncRunContext.CorrelationId,
+						CallerType,
+						nameof(GetItems),
+						t.Result.Item.Length );
+
 					t.Result.Item.ToList().Distinct().ForEach( i =>
 					{
 						dictionary[ i.Sku ] = i;
@@ -123,7 +172,6 @@ namespace SkuVault.Lightspeed.Access
 
 		public async Task< bool > DoesItemExistAsync( int itemId, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, $"Checking, if item {itemId} exists" );
 			var request = new GetItemRequest( itemId );
 			var response = await this._webRequestServices.GetResponseAsync< LightspeedProduct >( request, _syncRunContext, ctx );
 			return response != null;
@@ -131,14 +179,34 @@ namespace SkuVault.Lightspeed.Access
 
 		public async Task< IEnumerable< LightspeedProduct > > GetItemsCreatedInShopAsync( int shopId, DateTime createTimeUtc, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, string.Format( "Getting items, created in shop {0} after {1}", 
-				shopId, createTimeUtc ) );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[Start]: Getting items, created in shop '{ShopId}' after '{CreateTimeUtc}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetItemsCreatedInShopAsync),
+				shopId,
+				createTimeUtc );
 
 			var getItemRequest = new GetItemsRequest( shopId, createTimeUtc );
 			var result = await this.ExecuteGetItemsRequest( getItemRequest, ctx );
 
-			LightspeedLogger.Info( _syncRunContext, CallerType, string.Format( "Getting {0} items updated after {1} in shop {2}", 
-				result.Count(), createTimeUtc, shopId ) );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Getting '{ItemsNumber}' items updated after '{CreateTimeUtc}' in shop '{ShopId}'",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetItemsCreatedInShopAsync),
+				result.Count(),
+				createTimeUtc,
+				shopId );
+
 			return result;
 		}
 
@@ -150,14 +218,13 @@ namespace SkuVault.Lightspeed.Access
 
 		public async Task< IEnumerable< int > > GetExistingItemsIdsAsync( List< int > itemIds, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, $"Checking, if items {itemIds.ToJson()} exists" );
 			var existingProducts = await this.GetItemsAsync( itemIds.ToHashSet(), ctx );
 			return existingProducts.Select( p => p.ItemId );
 		}
 
 		private async Task< IEnumerable< LightspeedProduct > > GetItemsAsync( HashSet< int > itemIdsFull, CancellationToken ctx )
 		{
-			LightspeedLogger.Info( _syncRunContext, CallerType, "Started getting products by IDs" );
+			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			if( itemIdsFull.Count == 0 )
 				return new List< LightspeedProduct >();
@@ -172,7 +239,17 @@ namespace SkuVault.Lightspeed.Access
 					result.AddRange( response.Item );
 			}
 
-			LightspeedLogger.Info( _syncRunContext, CallerType, $"Got {result.Count} products by IDs" );
+			_logger.Logger.LogInformation(
+				Constants.LoggingCommonPrefix + "[End]: Got '{ProductsCount}' products by IDs",
+				Constants.ChannelName,
+				Constants.VersionInfo,
+				_syncRunContext.TenantId,
+				_syncRunContext.ChannelAccountId,
+				_syncRunContext.CorrelationId,
+				CallerType,
+				nameof(GetItemsCreatedInShopAsync),
+				result.Count() );
+
 			return result;
 		}
 
