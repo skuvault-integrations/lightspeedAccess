@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 using Newtonsoft.Json;
 using SkuVault.Integrations.Core.Common;
 using SkuVault.Lightspeed.Access.Helpers;
@@ -96,11 +97,12 @@ namespace SkuVault.Lightspeed.Access
 			request.ContentType = "application/x-www-form-urlencoded";
 			request.Method = WebRequestMethods.Http.Post;
 
-			request.ContentLength = data.Length;
+			var bodyBytes = Encoding.UTF8.GetBytes( data );
+			request.ContentLength = bodyBytes.Length;
 
-			using( StreamWriter stOut = new StreamWriter( request.GetRequestStream(), System.Text.Encoding.ASCII ) )
+			using ( var stream = request.GetRequestStream() )
 			{
-				stOut.Write( data );
+				stream.Write( bodyBytes, 0, bodyBytes.Length );
 			}
 
 			_logger.Logger.LogInformation(
@@ -115,9 +117,34 @@ namespace SkuVault.Lightspeed.Access
 				data,
 				sanitizedToken );
 
-			var response = request.GetResponse();
-			var reader = new StreamReader( response.GetResponseStream() );
-			var responseJson = reader.ReadToEnd();
+			string responseJson;
+			try
+			{
+				var response = request.GetResponse();
+				using var reader = new StreamReader( response.GetResponseStream() );
+				responseJson = reader.ReadToEnd();
+			}
+			catch ( WebException exception )
+			{
+				if ( exception.Response != null )
+				{
+					using var reader = new StreamReader( exception.Response.GetResponseStream(), Encoding.UTF8 );
+					var errorResponseJson = reader.ReadToEnd();
+
+					_logger.Logger.LogError(
+						Constants.LoggingCommonPrefix + "Token exchange failed. Error Details: '{ErrorDetails}'",
+						Constants.ChannelName,
+						Constants.VersionInfo,
+						_syncRunContext.TenantId,
+						_syncRunContext.ChannelAccountId,
+						_syncRunContext.CorrelationId,
+						CallerType,
+						nameof(GetAuthInfo),
+						errorResponseJson );
+				}
+
+				throw;
+			}
 
 			var jsonDictionary = JsonConvert.DeserializeObject< Dictionary< string, object > >( responseJson );
 			var accessToken = ( string )jsonDictionary[ "access_token" ];
