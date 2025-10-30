@@ -247,7 +247,7 @@ namespace SkuVault.Lightspeed.Access.Services
 		{
 			var additionalResponses = new List< T >();
 
-			if( !NeedToIterateThroughPagination( response, request) )
+			if( !NeedToIterateThroughPagination( response, request ) )
 				return additionalResponses;
 
 			var paginatedRequest = ( IRequestPagination )request;
@@ -259,7 +259,7 @@ namespace SkuVault.Lightspeed.Access.Services
 			var numPages = ( paginatedResponse.GetCount() / paginatedRequest.GetLimit() ) + 1;
 
 			_logger.Logger.LogInformation(
-				Constants.LoggingCommonPrefix + "Expected number of pages for request '{Request}' : '{NumPages}'}",
+				Constants.LoggingCommonPrefix + "Expected number of pages for request '{Request}' : '{NumPages}'",
 				Constants.ChannelName,
 				Constants.VersionInfo,
 				syncRunContext.TenantId,
@@ -295,7 +295,7 @@ namespace SkuVault.Lightspeed.Access.Services
 			var numPages = ( paginatedResponse.GetCount() / paginatedRequest.GetLimit() ) + 1;
 
 			_logger.Logger.LogInformation(
-				Constants.LoggingCommonPrefix + "Expected number of pages for request '{Request}' : '{NumPages}'}",
+				Constants.LoggingCommonPrefix + "Expected number of pages for request '{Request}' : '{NumPages}'",
 				Constants.ChannelName,
 				Constants.VersionInfo,
 				syncRunContext.TenantId,
@@ -318,7 +318,7 @@ namespace SkuVault.Lightspeed.Access.Services
 		private HttpWebRequest CreateHttpWebRequest( string url, SyncRunContext syncRunContext )
 		{
 			_logger.Logger.LogInformation(
-				Constants.LoggingCommonPrefix + "Composed lightspeed request URL: '{url}'}",
+				Constants.LoggingCommonPrefix + "Composed lightspeed request URL: '{url}'",
 				Constants.ChannelName,
 				Constants.VersionInfo,
 				syncRunContext.TenantId,

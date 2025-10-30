@@ -247,7 +247,7 @@ namespace SkuVault.Lightspeed.Access
 				_syncRunContext.ChannelAccountId,
 				_syncRunContext.CorrelationId,
 				CallerType,
-				nameof(GetItemsCreatedInShopAsync),
+				nameof(GetItemsAsync),
 				result.Count() );
 
 			return result;

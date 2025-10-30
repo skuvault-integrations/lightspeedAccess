@@ -21,7 +21,7 @@ namespace SkuVault.Lightspeed.Access
 			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			var request = new GetAccountRequest();
-			var result = this._webRequestServices.GetResponse< LightspeedAccountList >( request, _syncRunContext ).Account[ 0 ].AccountId;
+			var result = this._webRequestServices.GetResponse< LightspeedAccountList >( request, _syncRunContext ).Account.First().AccountId;
 
 			_logger.LogOperationEnd( _syncRunContext, CallerType );
 
