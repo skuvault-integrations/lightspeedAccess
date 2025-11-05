@@ -39,7 +39,7 @@ namespace SkuVault.Lightspeed.Access.Models.Configuration
 		public LightspeedConfig( int accountId, string accessToken, string refreshToken, string clientId, string clientSecret )
 		{
 			this.AccountId = accountId;
-			this.Endpoint = string.Format( "{0}/{1}/", path, accountId );
+			this.Endpoint = accountId > 0 ? string.Format( "{0}/{1}", path, accountId ) : path;
 			this.LightspeedAccessToken = string.IsNullOrWhiteSpace( accessToken ) ? EmptyToken : accessToken;
 			this.LightspeedRefreshToken = refreshToken;
 			this.TimeoutSeconds = DefaultTimeoutSeconds;
