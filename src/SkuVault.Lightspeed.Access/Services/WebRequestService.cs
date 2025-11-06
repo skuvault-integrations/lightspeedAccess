@@ -115,7 +115,7 @@ namespace SkuVault.Lightspeed.Access.Services
 				var rawResponseXml = reader.ReadToEnd();
 
 				_logger.Logger.LogInformation(
-					Constants.LoggingCommonPrefix + "Raw response: '{RawResponse'}",
+					Constants.LoggingCommonPrefix + "Raw response: '{RawResponse}'",
 					Constants.ChannelName,
 					Constants.VersionInfo,
 					syncRunContext.TenantId,
