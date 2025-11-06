@@ -6,7 +6,7 @@ namespace SkuVault.Lightspeed.Access.Tests
 	internal static class TestConstants
 	{
 		/// <summary>
-		/// Lighspeed Sandbox SkuVault Account Id
+		/// Lightspeed Sandbox SkuVault Account Id
 		/// </summary>
 		internal const int SandboxAccountId = 115323;
 	}

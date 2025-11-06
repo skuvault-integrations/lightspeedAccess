@@ -188,7 +188,7 @@ namespace SkuVault.Lightspeed.Access.Services
 				var result = ( T ) deserializer.Deserialize( stream );
 
 				_logger.Logger.LogInformation(
-					Constants.LoggingCommonPrefix + "[End]: Successfully deserialized response: '{ResultJson'}",
+					Constants.LoggingCommonPrefix + "[End]: Successfully deserialized response: '{ResultJson}'",
 					Constants.ChannelName,
 					Constants.VersionInfo,
 					syncRunContext.TenantId,
