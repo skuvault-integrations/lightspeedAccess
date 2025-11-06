@@ -4,10 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using SkuVault.Integrations.Core.Common;
 using Microsoft.Extensions.DependencyInjection;
-using SkuVault.Lightspeed.Access.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace SkuVault.Lightspeed.Access.Tests.Orders
 {

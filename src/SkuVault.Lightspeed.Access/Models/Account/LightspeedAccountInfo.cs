@@ -1,23 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
 namespace SkuVault.Lightspeed.Access.Models.Account
 {
-	[ XmlType( "Account" ) ]
+	[ XmlRoot( "Account" ) ]
 	public class LightspeedAccountInfo
 	{
-		[ XmlElement( "accountID" ) ]
+		[ XmlAttribute( "systemCustomerID" ) ]
 		public int AccountId{ get; set; }
-	}
-
-	[ XmlRoot( "Accounts", Namespace = "", IsNullable = false ) ]
-	public class LightspeedAccountList
-	{
-		[ XmlElement( typeof( LightspeedAccountInfo ) ) ]
-		public LightspeedAccountInfo[] Account{ get; set; }
 	}
 }
