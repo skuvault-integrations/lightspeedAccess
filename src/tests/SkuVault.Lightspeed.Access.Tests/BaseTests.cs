@@ -7,23 +7,25 @@ using SkuVault.Integrations.Core.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using SkuVault.Lightspeed.Access.Extensions;
 using Microsoft.Extensions.Logging;
+using SkuVault.Lightspeed.Access.Tests.Credentials;
 
 namespace SkuVault.Lightspeed.Access.Tests
 {
 	internal class BaseTests
 	{
 		protected LightspeedFactory _factory;
+		protected TestsCredentials _credentials;
 		protected LightspeedConfig _config;
 		protected static SyncRunContext SyncRunContext => new SyncRunContext( 1, 2, Guid.NewGuid().ToString() );
 
 		[ SetUp ]
 		public void Init()
 		{
-			var credentials = new Credentials.TestsCredentials( @"..\..\Files\lightspeedCredentials.csv" );
+			_credentials = new Credentials.TestsCredentials( @"..\..\Files\lightspeedCredentials.csv" );
 			IIntegrationLogger logger = Substitute.For<IIntegrationLogger>();
 			_factory = new LightspeedFactory( logger );
-			_config = new LightspeedConfig( credentials.AccountId, credentials.AccessToken, credentials.RefreshToken,
-				credentials.ClientId, credentials.ClientSecret );
+			_config = new LightspeedConfig( _credentials.AccountId, _credentials.AccessToken, _credentials.RefreshToken,
+				_credentials.ClientId, _credentials.ClientSecret );
 		}
 
 		protected static IServiceProvider CreatePublicServiceProvider()

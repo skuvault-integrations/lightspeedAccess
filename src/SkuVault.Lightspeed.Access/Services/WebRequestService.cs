@@ -111,11 +111,11 @@ namespace SkuVault.Lightspeed.Access.Services
 			{
 				var stream = response.GetResponseStream();
 
-				var deserializer = new XmlSerializer( typeof( T ) );
-				var result = ( T ) deserializer.Deserialize( stream );
+				using var reader = new StreamReader( stream, Encoding.UTF8 );
+				var rawResponseXml = reader.ReadToEnd();
 
 				_logger.Logger.LogInformation(
-					Constants.LoggingCommonPrefix + "[End]: Successfully deserialized response: '{ResultJson()'}",
+					Constants.LoggingCommonPrefix + "Raw response: '{RawResponse}'",
 					Constants.ChannelName,
 					Constants.VersionInfo,
 					syncRunContext.TenantId,
@@ -123,7 +123,11 @@ namespace SkuVault.Lightspeed.Access.Services
 					syncRunContext.CorrelationId,
 					CallerType,
 					nameof(GetResponse),
-					result.ToJson() );
+					rawResponseXml );
+
+				var deserializer = new XmlSerializer( typeof( T ) );
+				using var stringReader = new StringReader( rawResponseXml );
+				var result = ( T ) deserializer.Deserialize( stringReader );
 
 				var possibleAdditionalResponses = this.IterateThroughPagination( request, result, syncRunContext );
 
@@ -184,7 +188,7 @@ namespace SkuVault.Lightspeed.Access.Services
 				var result = ( T ) deserializer.Deserialize( stream );
 
 				_logger.Logger.LogInformation(
-					Constants.LoggingCommonPrefix + "[End]: Successfully deserialized response: '{ResultJson()'}",
+					Constants.LoggingCommonPrefix + "[End]: Successfully deserialized response: '{ResultJson}'",
 					Constants.ChannelName,
 					Constants.VersionInfo,
 					syncRunContext.TenantId,
