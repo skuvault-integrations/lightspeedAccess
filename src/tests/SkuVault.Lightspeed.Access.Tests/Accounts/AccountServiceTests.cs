@@ -1,5 +1,6 @@
-﻿using NUnit.Framework;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using SkuVault.Lightspeed.Access.Models.Configuration;
 
 namespace SkuVault.Lightspeed.Access.Tests.Account
 {
@@ -23,7 +24,9 @@ namespace SkuVault.Lightspeed.Access.Tests.Account
 		{
 			var provider = CreatePublicServiceProvider();
 			var factory = provider.GetRequiredService<ILightspeedFactory>();
-			return factory.CreateAccountsService(_config, SyncRunContext);
+			var config = new LightspeedConfig(0, _credentials.AccessToken, _credentials.RefreshToken,
+				_credentials.ClientId, _credentials.ClientSecret);
+			return factory.CreateAccountsService(config, SyncRunContext);
 		}
 	}
 }

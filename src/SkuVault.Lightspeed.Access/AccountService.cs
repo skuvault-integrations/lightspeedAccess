@@ -1,4 +1,5 @@
-﻿using SkuVault.Lightspeed.Access.Models.Account;
+﻿using System.Linq;
+using SkuVault.Lightspeed.Access.Models.Account;
 using SkuVault.Lightspeed.Access.Models.Configuration;
 using SkuVault.Lightspeed.Access.Models.Request;
 using SkuVault.Integrations.Core.Common;
@@ -20,7 +21,7 @@ namespace SkuVault.Lightspeed.Access
 			_logger.LogOperationStart( _syncRunContext, CallerType );
 
 			var request = new GetAccountRequest();
-			var result = this._webRequestServices.GetResponse< LightspeedAccountInfo >( request, _syncRunContext ).AccountId;
+			var result = this._webRequestServices.GetResponse< LightspeedAccountList >( request, _syncRunContext ).Account.First().AccountId;
 
 			_logger.LogOperationEnd( _syncRunContext, CallerType );
 

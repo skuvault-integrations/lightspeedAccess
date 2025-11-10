@@ -2,10 +2,17 @@
 
 namespace SkuVault.Lightspeed.Access.Models.Account
 {
-	[ XmlRoot( "Account" ) ]
+	[ XmlType( "Account" ) ]
 	public class LightspeedAccountInfo
 	{
-		[ XmlAttribute( "systemCustomerID" ) ]
+		[ XmlElement( "accountID" ) ]
 		public int AccountId{ get; set; }
+	}
+
+	[ XmlRoot( "Accounts", Namespace = "", IsNullable = false ) ]
+	public class LightspeedAccountList
+	{
+		[ XmlElement( typeof( LightspeedAccountInfo ) ) ]
+		public LightspeedAccountInfo[] Account{ get; set; }
 	}
 }
