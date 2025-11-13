@@ -161,7 +161,7 @@ namespace SkuVault.Lightspeed.Access.Services
 						{
 							this.RefreshSession();
 						}
-						if( IsItemNotFound( request, ex ) )
+						if( IsItemNotFound( request, ex ) || IsItemAlreadyExist( request, ex ) )
 						{
 							return null;
 						}
@@ -226,6 +226,12 @@ namespace SkuVault.Lightspeed.Access.Services
 				return false;
 
 			return response.StatusCode == HttpStatusCode.NotFound;
+		}
+
+		private static bool IsItemAlreadyExist( LightspeedRequest request, WebException exception )
+		{
+			return request is UpdateOnHandQuantityRequest && exception.Response is HttpWebResponse response
+				&& ( int )response.StatusCode == 422;
 		}
 
 		internal static bool IsBadRequestException( Exception exception )
