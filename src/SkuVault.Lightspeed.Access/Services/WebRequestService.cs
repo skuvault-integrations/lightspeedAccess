@@ -161,7 +161,7 @@ namespace SkuVault.Lightspeed.Access.Services
 						{
 							this.RefreshSession();
 						}
-						if( IsItemNotFound( request, ex ) || IsItemAlreadyExist( request, ex ) )
+						if( IsItemNotFound( request, ex ) || IsHttp422Error( request, ex ) )
 						{
 							return null;
 						}
@@ -228,8 +228,11 @@ namespace SkuVault.Lightspeed.Access.Services
 			return response.StatusCode == HttpStatusCode.NotFound;
 		}
 
-		private static bool IsItemAlreadyExist( LightspeedRequest request, WebException exception )
+		private static bool IsHttp422Error( LightspeedRequest request, WebException exception )
 		{
+			// Lightspeed may return HTTP 422 when updating the on-hand quantity for items
+			// that have duplicated EAN/UPC values. In this case we skip the item instead
+			// of failing the entire sync.
 			return request is UpdateOnHandQuantityRequest && exception.Response is HttpWebResponse response
 				&& ( int )response.StatusCode == 422;
 		}
