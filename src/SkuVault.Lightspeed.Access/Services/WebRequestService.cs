@@ -230,11 +230,22 @@ namespace SkuVault.Lightspeed.Access.Services
 
 		private static bool IsHttp422Error( LightspeedRequest request, WebException exception )
 		{
+			// only UpdateOnHandQuantityRequest can trigger this error.
+			if ( request is not UpdateOnHandQuantityRequest )
+				return false;
+
+			// 422 only comes as an HTTP protocol error
+			if ( exception.Status != WebExceptionStatus.ProtocolError )
+				return false;
+
+			// we need a valid HTTP response to inspect the status code.
+			if ( exception.Response is not HttpWebResponse response )
+				return false;
+
 			// Lightspeed may return HTTP 422 when updating the on-hand quantity for items
 			// that have duplicated EAN/UPC values. In this case we skip the item instead
 			// of failing the entire sync.
-			return request is UpdateOnHandQuantityRequest && exception.Response is HttpWebResponse response
-				&& ( int )response.StatusCode == 422;
+			return ( int )response.StatusCode == 422;
 		}
 
 		internal static bool IsBadRequestException( Exception exception )
