@@ -104,7 +104,7 @@ namespace SkuVault.Lightspeed.Access
 		{
 			var paramInfo = string.Format( "itemId:{0}, shopId:{1}, itemShopRelationId:{2}, quantity:{3}{4}",
 				itemId, shopId, itemShopRelationId, quantity, ( !string.IsNullOrWhiteSpace( logComment ) ? ", " : "" ) + logComment );
-			
+
 			_logger.Logger.LogInformation(
 				Constants.LoggingCommonPrefix + "[Start]: Starting update shop item quantity: '{ParamInfo}'",
 				Constants.ChannelName,
@@ -117,7 +117,33 @@ namespace SkuVault.Lightspeed.Access
 				paramInfo );
 
 			var updateOnHandQuantityRequest = new UpdateOnHandQuantityRequest( itemId, shopId, itemShopRelationId, quantity );
-			await this._webRequestServicesForUpdating.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest, _syncRunContext, ctx );
+
+			try
+			{
+				await this._webRequestServicesForUpdating.GetResponseAsync< LightspeedProduct >( updateOnHandQuantityRequest,
+					_syncRunContext, ctx );
+			}
+			catch ( WebException exception ) when ( IsNonCriticalQuantityUpdateError( exception ) )
+			{
+				// Lightspeed may return HTTP 422 when updating the on-hand quantity
+				// for items that have duplicated EAN/UPC values.
+				// In this case we skip the item instead of failing the entire sync.
+				_logger.Logger.LogWarning(
+					Constants.LoggingCommonPrefix +
+					"Skipping Lightspeed quantity update for itemId '{ItemId}', shopId '{ShopId}' " +
+					"due to HTTP 422 (Unprocessable Entity). Exception: '{Message}'",
+					Constants.ChannelName,
+					Constants.VersionInfo,
+					_syncRunContext.TenantId,
+					_syncRunContext.ChannelAccountId,
+					_syncRunContext.CorrelationId,
+					CallerType,
+					nameof(UpdateOnHandQuantityAsync),
+					itemId,
+					shopId,
+					exception.Message );
+			}
+
 
 			_logger.LogOperationEnd( _syncRunContext, CallerType );
 		}
@@ -287,6 +313,25 @@ namespace SkuVault.Lightspeed.Access
 
 			var order = ( ShopOrder )deserializer.Deserialize( stream );
 			return order;
+		}
+
+		private static bool IsNonCriticalQuantityUpdateError( WebException exception )
+		{
+			// We only care about HTTP protocol errors like 422.
+			if ( exception.Status != WebExceptionStatus.ProtocolError )
+			{
+				return false;
+			}
+
+			if ( exception.Response is not HttpWebResponse response )
+			{
+				return false;
+			}
+
+			// Lightspeed may return HTTP 422 when updating the on-hand quantity for items
+			// that have duplicated EAN/UPC values. In this case we skip the item instead
+			// of failing the entire sync.
+			return ( int )response.StatusCode == 422;
 		}
 	}
 }
